@@ -1,7 +1,6 @@
 import os
 import io
 import json
-import redis
 import hashlib
 import logging
 from datetime import datetime
@@ -9,6 +8,11 @@ from urllib.parse import urlparse
 from rtconfig.utils import OSUtils, strftime
 from rtconfig.exceptions import GlobalApiException
 from alita_login import UserMixin
+try:
+    import redis
+    redis_usable = True
+except:
+    redis_usable = False
 
 logger = logging.getLogger(__name__)
 
@@ -109,6 +113,8 @@ class RedisAuthManager(AuthManager):
     def __init__(self, app):
         super().__init__(app)
         self.redis_url = self.app.config['REDIS_URL']
+        if not redis_usable:
+            raise RuntimeError('You need install [redis] package.')
         self.init_admin()
 
     @property
