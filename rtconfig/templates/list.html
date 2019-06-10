@@ -1,0 +1,115 @@
+{% extends 'base.html' %}
+{% block body %}
+<div style="padding: 15px;">
+      <button class="layui-btn" id="create_config">创建配置</button>
+      <table class="layui-table" lay-data="{url:'/rtc/api/config/list', id:'config', page: true}" lay-filter="config">
+  <thead>
+    <tr>
+      <th lay-data="{field:'config_name', sort: true}">配置名称</th>
+      <th lay-data="{field:'connect_num'}">客户端连接数</th>
+      <th lay-data="{fixed:'right', align:'center', toolbar: '#barDemo'}">操作</th>
+    </tr>
+  </thead>
+</table>
+
+<script type="text/html" id="barDemo">
+  <a class="layui-btn layui-btn-sm" lay-event="detail">编辑配置</a>
+  <a class="layui-btn layui-btn-sm" lay-event="copy">复制</a>
+  <a class="layui-btn layui-btn-sm" lay-event="del">删除</a>
+  <a class="layui-btn layui-btn-sm" lay-event="client">查看客户端</a>
+</script>
+</div>
+<script>
+layui.use('table', function(){
+  var table = layui.table;
+  var $ = layui.jquery;
+  $('#create_config').on('click', function(){
+      layer.prompt({
+          title: '创建配置',
+        }, function(value, index){
+          $.ajax({
+              type: "POST",
+              url: "/rtc/api/config?config_name=" + value,
+              contentType: "application/json",
+              success:function(res){
+                if (res.code == 0) {
+                    location.reload();
+                }
+                else {
+                    layer.alert(res.msg);
+                }
+              }
+          });
+        });
+  });
+
+  //监听工具条
+  table.on('tool(config)', function(obj){
+    var data = obj.data;
+    if(obj.event === 'client'){
+      window.location.href = "/rtc/client?config_name=" + data.config_name;
+    }else if(obj.event === 'detail'){
+      window.location.href = "/rtc/detail?config_name=" + data.config_name + "#tab=1";
+    }else if(obj.event === 'copy'){
+        layer.prompt({
+          title: '复制配置',
+        }, function(value, index){
+          $.ajax({
+              type: "POST",
+              url: "/rtc/api/config?config_name=" + value,
+              contentType: "application/json",
+              data: JSON.stringify({"copy_from": data.config_name}),
+              success:function(res){
+                if (res.code == 0) {
+                    location.reload();
+                }
+                else {
+                    layer.alert(res.msg);
+                }
+              }
+          });
+        });
+      }else if(obj.event === 'edit'){
+        layer.prompt({
+          formType: 2,
+          maxlength: 999999999,
+          value: JSON.stringify(data.source_data, null, 8),
+          title: '配置信息',
+          area: ['600px', '800px'] //自定义文本域宽高
+        }, function(value, index){
+          $.ajax({
+              type: "PUT",
+              url: "/rtc/api/config?config_name=" + data.config_name,
+              contentType: "application/json",
+              data: JSON.stringify({"data": value}),
+              success:function(res){
+                if (res.code == 0) {
+                    location.reload();
+                }
+                else {
+                    layer.alert(res.msg);
+                }
+              }
+          });
+        });
+    } else if(obj.event === 'del'){
+      layer.confirm('确认删除配置?', function(index){
+        $.ajax({
+              type: "DELETE",
+              url: "/rtc/api/config?config_name=" + data.config_name,
+              contentType: "application/json",
+              success:function(res){
+                if (res.code == 0) {
+                    location.reload();
+                }
+                else {
+                    layer.alert(res.msg);
+                }
+              }
+          });
+      });
+    }
+  });
+});
+</script>
+{% endblock %}

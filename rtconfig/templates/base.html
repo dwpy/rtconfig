@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <title>远程配置管理</title>
+  <link rel="stylesheet" href="static/css/layui.css">
+  <link rel="stylesheet" href="static/css/global.css">
+</head>
+<body>
+<div class="layui-layout layui-layout-admin">
+  <div class="layui-header header header-demo">
+    <div class="layui-logo"><a href="/" style="color: rgba(255,255,255,.7)">远程配置</a></div>
+    <ul class="layui-nav layui-layout-right">
+      <li class="layui-nav-item"><a href="/">控制台</a></li>
+      <li class="layui-nav-item">
+        <a href="javascript:;">
+          <img src="http://t.cn/RCzsdCq" class="layui-nav-img">
+          {{ current_user.username }}
+        </a>
+        <dl class="layui-nav-child">
+          <dd><a href="/rtc/system">系统信息</a></dd>
+          <dd><a href="/rtc/logout">退出</a></dd>
+        </dl>
+      </li>
+    </ul>
+  </div>
+
+  <div class="layui-side layui-bg-black">
+    <div class="layui-side-scroll">
+      <!-- 左侧导航区域（可配合layui已有的垂直导航） -->
+      <ul class="layui-nav layui-nav-tree"  lay-filter="test">
+        <li class="layui-nav-item layui-nav-itemed">
+          <a class="" href="javascript:;">配置管理</a>
+          <dl class="layui-nav-child">
+            <dd><a href="/rtc/project">配置列表</a></dd>
+            <dd><a href="/rtc/client">配置连接</a></dd>
+          </dl>
+        </li>
+        <li class="layui-nav-item"><a href="/rtc/system">系统信息</a></li>
+      </ul>
+    </div>
+  </div>
+  <script src="static/js/layui.js"></script>
+  <script src="static/js/global.js"></script>
+  <script>
+    layui.use('element', function(){
+      var element = layui.element;
+    });
+    window.global = {
+      pageType: 'demo'
+      ,preview: function(){
+        var preview = document.getElementById('LAY_preview');
+        return preview ? preview.innerHTML : '';
+      }()
+    };
+  </script>
+  <div class="layui-body site-demo">
+    {% block body %}{% endblock %}
+  </div>
+
+  <div class="layui-footer footer footer-demo">
+    <div class="layui-main">
+      <p>&copy; 2019 <a href="/">rtconfig</a> MIT license</p>
+    </div>
+  </div>
+
+  <div class="site-tree-mobile layui-hide">
+    <i class="layui-icon">&#xe602;</i>
+  </div>
+  <div class="site-mobile-shade"></div>
+</div>
+{% block extend %}{% endblock %}
+</body>
+</html>

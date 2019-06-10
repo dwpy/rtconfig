@@ -1,0 +1,64 @@
+{% extends 'base.html' %}
+{% block body %}
+<div class="layui-container" style="padding: 15px;">
+    <div class="layui-row">
+        <div class="layui-col-xs12 layui-col-md12" style="height: 40px;">
+          <button class="layui-btn layui-layout-right" id="refresh" style="margin-right: 30px;">刷新</button>
+        </div>
+    </div>
+
+    <div class="layui-row">
+        <div class="layui-col-xs12">
+          <table class="layui-table" lay-data="{url:'/rtc/api/client?config_name={{config_name}}', id:'client', page: true}" lay-filter="client">
+              <thead>
+                <tr>
+                  <th lay-data="{field:'config_name', sort: true}">配置名称</th>
+                  <th lay-data="{field:'env', align: 'center'}">配置环境</th>
+                  <th lay-data="{field:'pid', align: 'center'}">进程ID</th>
+                  <th lay-data="{field:'client_ip', align: 'center'}">客户端地址</th>
+                  <th lay-data="{field:'server_hash_code', align: 'center'}">服务器版本号</th>
+                  <th lay-data="{field:'hash_code', align: 'center'}">客户端版本号</th>
+                  <th lay-data="{field:'lut', align: 'center'}">最新时间</th>
+                  <th lay-data="{fixed:'right', align:'center', toolbar: '#barDemo'}">操作</th>
+                </tr>
+              </thead>
+          </table>
+        </div>
+    </div>
+
+<script type="text/html" id="barDemo">
+  <a class="layui-btn layui-btn-sm right" lay-event="detail">查看环境变量</a>
+</script>
+</div>
+<script>
+layui.use('table', function(){
+  var table = layui.table;
+  var $ = layui.jquery;
+
+  $('#refresh').on('click', function(){
+      table.reload('client');
+  });
+
+  //监听工具条
+  table.on('tool(client)', function(obj){
+    var data = obj.data;
+    if(obj.event === 'detail'){
+      layer.open({
+          formType: 2,
+          content: '<textarea class="layui-textarea" style="height: 700px">'
+          + JSON.stringify(data.context, null, 8) + '</textarea>',
+          title: '环境变量',
+          area: ['800px', '700px'] //自定义文本域宽高
+        }, function(value, index){
+          layer.close(index);
+        });
+    } else if(obj.event === 'del'){
+      layer.confirm('真的删除行么', function(index){
+        obj.del();
+        layer.close(index);
+      });
+    }
+  });
+});
+</script>
+{% endblock %}

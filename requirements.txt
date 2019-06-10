@@ -1,0 +1,8 @@
+attrs
+alita
+psutil
+websockets==6.0
+python-dotenv
+alita-session
+alita-login
+uwsgidecorators

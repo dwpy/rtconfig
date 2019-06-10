@@ -1,0 +1,154 @@
+{% extends 'base.html' %}
+{% block body %}
+<div style="padding: 15px;">
+  <fieldset class="layui-elem-field layui-field-title" style="margin-top: 20px;">
+  <legend>系统信息</legend>
+    </fieldset>
+
+    <div class="layui-fluid" style="padding: 20px; background-color: #F2F2F2;">
+  <div class="layui-row layui-col-space15">
+    <div class="layui-col-md6">
+      <div class="layui-card">
+        <div class="layui-card-header">系统配置</div>
+        <div class="layui-card-body">
+          <ul class="layui-row layui-col-space10 layui-this">
+            {% for key, value in system_info.items() %}
+            <li class="layui-col-xs6">
+              <a class="layadmin-backlog-body">
+                <h3>{{key}}</h3>
+                <p><cite>{{value}}</cite></p>
+              </a>
+            </li>
+            {% endfor %}
+          </ul>
+      </div>
+    </div>
+  </div>
+
+    <div class="layui-col-md6">
+      <div class="layui-card">
+        <div class="layui-card-header">连接信息</div>
+        <div class="layui-card-body">
+          <ul class="layui-row layui-col-space10 layui-this">
+            {% for key, value in client_info.items() %}
+            <li class="layui-col-xs6">
+              <a class="layadmin-large-backlog-body">
+                <h3>{{key}}</h3>
+                <p><cite>{{value}}</cite></p>
+              </a>
+            </li>
+            {% endfor %}
+          </ul>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+
+  <fieldset class="layui-elem-field layui-field-title" style="margin-top: 20px;">
+  <legend>客户端使用须知</legend>
+
+    </fieldset>
+
+  <div style="padding: 20px; background-color: #F2F2F2;">
+  <div class="layui-row layui-col-space12">
+    <div class="layui-col-md12">
+      <div class="layui-card">
+        <div class="layui-card-header">模块安装</div>
+        <div class="layui-card-body">
+          <blockquote class="layui-elem-quote layui-text">
+            pip install -e git+git@repo.gstianfu.com:backend/libs/rtconfig.git#egg=rtconfig
+          </blockquote>
+        </div>
+      </div>
+
+      <div class="layui-card">
+        <div class="layui-card-header">创建客户端连接</div>
+        <div class="layui-card-body">
+          <p>在你需要加载实时配置的模块中加入如下代码：</p>
+          <pre class="layui-code" lay-title="Python" lay-about="false">
+from rtconfig import RtConfigClient
+client = RtConfigClient(
+    'gezi',
+    ws_url='ws://192.168.4.254:18015',
+    config_module=globals())
+          </pre>
+        </div>
+      </div>
+
+      <div class="layui-card">
+        <div class="layui-card-header">客户端定义占位符变量</div>
+        <div class="layui-card-body">
+          <p>配置源数据中，env项用于定义占位符变量，该变量用于在生成配置数据时，使用该变量替换值中的占位符。</p>
+          <p>如何从客户端中定义占位符变量，从而替代服务器端定义的值呢？目前主要有2种方式：</p>
+          <p>1. 定义RtConfigClient对象时，直接传入context参数，值为占位符变量键值对，例如：</p>
+          <pre class="layui-code" lay-title="Python" lay-about="false">
+client = RtConfigClient(
+    'gezi',
+    ws_url='ws://192.168.4.254:18015',
+    config_module=globals(),
+    context={'IP': '127.0.0.1'})
+          </pre>
+          <p>2. 定义.env环境变量文件，使用该方式需安装python-dotenv包，文件应放在当前目录或逐级以上目录，直至/系统根目录都可以。</p>
+          <p>注意：使用context方式优先级大于使用.env环境变量方式</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+  <fieldset class="layui-elem-field layui-field-title" style="margin-top: 20px;">
+  <legend>服务器端部署</legend>
+
+    </fieldset>
+
+  <div style="padding: 20px; background-color: #F2F2F2;">
+  <div class="layui-row layui-col-space12">
+    <div class="layui-col-md12">
+      <div class="layui-card">
+        <div class="layui-card-header">模块安装</div>
+        <div class="layui-card-body">
+          <blockquote class="layui-elem-quote layui-text">
+            pip install -e git+git@repo.gstianfu.com:backend/libs/rtconfig.git#egg=rtconfig
+              <br>
+              跳转至rtconfig目录
+              <br>
+            pip install -r requirements.txt
+          </blockquote>
+        </div>
+      </div>
+
+      <div class="layui-card">
+        <div class="layui-card-header">运行服务器</div>
+        <div class="layui-card-body">
+           <blockquote class="layui-elem-quote layui-text">
+             默认启动：python -m rtconfig.server
+             <br/>
+             配置启动：python -m rtconfig.server --config=services.py
+          </blockquote>
+        </div>
+      </div>
+
+      <div class="layui-card">
+        <div class="layui-card-header">配置数据存储方式</div>
+        <div class="layui-card-body">
+          <p>目前配置数据存储方式支持json文件和redis两种。指定数据存储方式应包含如下配置：</p>
+          <p>1. json文件：</p>
+          <blockquote class="layui-elem-quote layui-text">
+          <p>STORE_TYPE = "json_file"</p>
+          <p>STORE_PATH = "~/rtconfig"(默认路径)</p>
+          </blockquote>
+          <p>2. redis：</p>
+          <blockquote class="layui-elem-quote layui-text">
+          <p>STORE_TYPE = "redis"</p>
+          <p>REDIS_URL = "redis://192.168.4.254:6379/0"</p>
+          </blockquote>
+          <p>注意：如未定义存储方式，则默认使用json文件方式。</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+{% endblock %}

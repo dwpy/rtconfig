@@ -1,0 +1,250 @@
+{% extends 'base.html' %}
+{% block body %}
+<div style="padding: 15px;">
+  <div class="layui-tab" lay-filter="tab">
+    <ul class="layui-tab-title">
+      <li class="layui-this" lay-id="1">配置项</li>
+      <li lay-id="2">环境变量</li>
+    </ul>
+    <div class="layui-tab-content" style="height: 100px;">
+      <div class="layui-tab-item layui-show">
+        <button class="layui-btn" id="create_default">创建配置项</button>
+        <button class="layui-btn" id="import_config">导入配置项</button>
+        <table class="layui-table" lay-data="{url:'/rtc/api/config/item?env=default&config_name={{config_name}}', id:'default_data', page: true}" lay-filter="default_data">
+          <thead>
+            <tr>
+              <th lay-data="{field:'key', sort: true, align: 'center'}">配置项名称</th>
+              <th lay-data="{field:'desc', sort: true, align: 'center'}">配置项说明</th>
+              <th lay-data="{field:'value', align: 'center', templet: function(d) {return JSON.stringify(d.value);}}">配置项值</th>
+              <th lay-data="{fixed:'right', align:'center', toolbar: '#barDemo'}">操作</th>
+            </tr>
+          </thead>
+        </table>
+      </div>
+      <div class="layui-tab-item">
+        <button class="layui-btn" id="create_env">创建变量</button>
+        <table class="layui-table" lay-data="{url:'/rtc/api/config/item?env=environ&config_name={{config_name}}', id:'env_data', page: true}" lay-filter="env_data">
+          <thead>
+            <tr>
+              <th lay-data="{field:'key', sort: true, align: 'center'}">变量名称</th>
+              <th lay-data="{field:'desc', sort: true, align: 'center'}">变量说明</th>
+              <th lay-data="{field:'value', align: 'center', templet: function(d) {return JSON.stringify(d.value);}}">变量值</th>
+              <th lay-data="{fixed:'right', align:'center', toolbar: '#barDemo'}">操作</th>
+            </tr>
+          </thead>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <script type="text/html" id="barDemo">
+    <a class="layui-btn layui-btn-sm" lay-event="edit">修改</a>
+    <a class="layui-btn layui-btn-sm" lay-event="del">删除</a>
+    <a class="layui-btn layui-btn-sm right" lay-event="history">查看历史</a>
+  </script>
+</div>
+<script>
+layui.use('table', function() {
+    var table = layui.table;
+    var $ = layui.jquery;
+    var element = layui.element;
+
+    //Hash地址的定位
+    var layid = location.hash.replace(/^#tab=/, '');
+    element.tabChange('tab', layid);
+
+    element.on('tab(tab)', function(elem){
+      location.hash = 'tab='+ $(this).attr('lay-id');
+    });
+
+    $('#import_config').on('click', function(){
+      layer.prompt({
+          formType: 2,
+          maxlength: 999999999,
+          title: '导入配置',
+          area: ['600px', '800px'] //自定义文本域宽高
+        }, function(value, index){
+          $.ajax({
+              type: "PUT",
+              url: "/rtc/api/config?env=default&config_name={{config_name}}",
+              contentType: "application/json",
+              data: JSON.stringify({"data": value}),
+              success:function(res){
+                if (res.code == 0) {
+                    location.reload();
+                }
+                else {
+                    layer.alert(res.msg);
+                }
+              }
+          });
+        });
+  });
+
+    var update_config_item = function (env, title, method, data) {
+        if (data != undefined){
+            $('#config_key').val(data.key);
+            $('#config_desc').val(data.desc);
+            $('#config_value').val(JSON.stringify(data.value, null, 8));
+        } else {
+            $('#config_key').val('');
+            $('#config_desc').val('');
+            $('#config_value').val('');
+        }
+        layer.open({
+            type: 1,
+            title: title,
+            shadeClose: true,
+            content: $("#config_frame"),
+            btn: ['确认', '取消'],
+            area: ['600px', '550px'],
+            yes: function (index, layero) {
+                var config_value = '';
+                if ($('#config_key').val() == '') {
+                  layer.alert("配置项名称不能为空");
+                  return;
+                }
+                if ($('#config_value').val() == '') {
+                  layer.alert("配置值不能为空");
+                  return
+                }
+                try {
+                  config_value = window.hj.default.parse($('#config_value').val());
+                } catch (e) {
+                  layer.alert("配置值格式不正确");
+                  return;
+                }
+                var index_loading = layer.msg('正在修改配置...', {
+                    icon:16, shade: 0.1, shadeClose: false
+                });
+                $.ajax({
+                    type: method,
+                    url: "/rtc/api/config/item?config_name={{config_name}}&env=" + env,
+                    contentType: "application/json",
+                    data: JSON.stringify({
+                        "key": $('#config_key').val(),
+                        "desc": $('#config_desc').val(),
+                        "value": config_value
+                    }),
+                    success: function (res) {
+                        layer.close(index_loading);
+                        if (res.code == 0) {
+                            location.reload();
+                        }
+                        else {
+                            layer.alert(res.msg);
+                        }
+                    }
+                });
+            }, btn2: function () {
+                layer.closeAll();
+            }
+        });
+    };
+
+    $('#create_default').on('click', function () {
+        update_config_item('default', '创建配置项', 'POST');
+    });
+    $('#create_env').on('click', function () {
+        update_config_item('environ', '创建变量', 'POST');
+    });
+    //监听工具条
+    table.on('tool(default_data)', function (obj) {
+        var data = obj.data;
+        if (obj.event === 'edit') {
+            update_config_item('default', '修改配置项', 'PUT', data)
+        } else if (obj.event === 'del') {
+            layer.confirm('确认删除配置项?', function (index) {
+                $.ajax({
+                    type: "DELETE",
+                    url: "/rtc/api/config/item?config_name={{config_name}}&env=default",
+                    contentType: "application/json",
+                    data: JSON.stringify({
+                        "key": data.key,
+                    }),
+                    success: function (res) {
+                        if (res.code == 0) {
+                            location.reload();
+                        }
+                        else {
+                            layer.alert(res.msg);
+                        }
+                    }
+                });
+            });
+        } else if(obj.event === 'history'){
+          layer.open({
+              formType: 2,
+              content: '<textarea class="layui-textarea" style="height: 700px">'
+              + JSON.stringify(data.history, null, 8) + '</textarea>',
+              title: '历史修改记录',
+              area: ['800px', '700px'] //自定义文本域宽高
+            }, function(value, index){
+              layer.close(index);
+            });
+        }
+    });
+    table.on('tool(env_data)', function (obj) {
+        var data = obj.data;
+        if (obj.event === 'edit') {
+            update_config_item('env', '修改变量', 'PUT', data)
+        } else if (obj.event === 'del') {
+            layer.confirm('确认删除环境变量?', function (index) {
+                $.ajax({
+                    type: "DELETE",
+                    url: "/rtc/api/config/item?config_name={{config_name}}&env=environ",
+                    contentType: "application/json",
+                    data: JSON.stringify({
+                        "key": data.key,
+                    }),
+                    success: function (res) {
+                        if (res.code == 0) {
+                            location.reload();
+                        }
+                        else {
+                            layer.alert(res.msg);
+                        }
+                    }
+                });
+            });
+        } else if(obj.event === 'history'){
+          layer.open({
+              formType: 2,
+              content: '<textarea class="layui-textarea" style="height: 700px">'
+              + JSON.stringify(data.history, null, 8) + '</textarea>',
+              title: '历史修改记录',
+              area: ['800px', '700px'] //自定义文本域宽高
+            }, function(value, index){
+              layer.close(index);
+            });
+        }
+    });
+});
+</script>
+{% endblock %}
+
+{% block extend %}
+<div hidden id="config_frame">
+  <form class="layui-form" action="" style="margin-top: 20px; margin-right: 60px">
+  <div class="layui-form-item">
+    <label class="layui-form-label">配置项名称</label>
+    <div class="layui-input-block">
+      <input type="text" id="config_key" required  lay-verify="required" placeholder="请输入配置项名称" autocomplete="off" class="layui-input">
+    </div>
+  </div>
+    <div class="layui-form-item">
+    <label class="layui-form-label">说明</label>
+    <div class="layui-input-block">
+      <input type="text" id="config_desc" required  lay-verify="required" placeholder="请输入配置项说明" autocomplete="off" class="layui-input">
+    </div>
+  </div>
+  <div class="layui-form-item layui-form-text">
+    <label class="layui-form-label">配置项值</label>
+    <div class="layui-input-block">
+      <textarea id="config_value" lay-verify="required" placeholder="请输入配置项值" class="layui-textarea" style="height: 320px"></textarea>
+    </div>
+  </div>
+</form>
+</div>
+<script src="static/js/bundle.js"></script>
+{% endblock %}
