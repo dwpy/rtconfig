@@ -178,18 +178,8 @@ class ConfigManager(CallbackHandleMixin):
             'STORE_TYPE', self._default_store_type)
         self.store_backend = None
         self.rt_log = self.app.config.get("RT_SERVER_LOG", True)
-        config_logging(self.log_file_name, self.logger,
-                       customize_handler=self.get_customize_handler())
+        config_logging(self.log_file_name, self.logger)
         self.init_store_backend_instance()
-
-    def get_customize_handler(self):
-        def write_log(message):
-            if not self.app.loop:
-                return
-            self.app.loop.create_task(self.app.send_websocket_message(
-                'ws_view.ws_server_log', message))
-
-        return WebsocketHandler(write_log) if self.rt_log else None
 
     @property
     def system_info(self):
