@@ -58,7 +58,7 @@
         <div class="layui-card-header">模块安装</div>
         <div class="layui-card-body">
           <blockquote class="layui-elem-quote layui-text">
-            pip install -e git+git@repo.gstianfu.com:backend/libs/rtconfig.git#egg=rtconfig
+            pip install rtconfig
           </blockquote>
         </div>
       </div>
@@ -110,9 +110,9 @@ client = RtConfigClient(
         <div class="layui-card-header">模块安装</div>
         <div class="layui-card-body">
           <blockquote class="layui-elem-quote layui-text">
-            pip install -e git+git@repo.gstianfu.com:backend/libs/rtconfig.git#egg=rtconfig
+            pip install rtconfig
               <br>
-              跳转至rtconfig目录
+              跳转至rtconfig根目录
               <br>
             pip install -r requirements.txt
           </blockquote>
@@ -124,8 +124,6 @@ client = RtConfigClient(
         <div class="layui-card-body">
            <blockquote class="layui-elem-quote layui-text">
              默认启动：python -m rtconfig.server
-             <br/>
-             配置启动：python -m rtconfig.server --config=services.py
           </blockquote>
         </div>
       </div>
