@@ -22,6 +22,11 @@ Command options:
 Or you can start server multiprocess by Gunicorn.
 >gunicorn rtconfig.server:app -b 0.0.0.0:8089 -k alita.GunicornWorker -w 2
 
+## Login account
+Both of initial user name and password is `admin`.
+If you want to change password or add new account, you need use command like this:
+>python -m rtconfig.cli update_user {name} {password}
+
 ## Client connection
 Create a new python module `conf.py`, then write code like this:
 ```
