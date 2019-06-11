@@ -1,18 +1,28 @@
 import os
 import io
 import json
+import time
 import asyncio
 import logging
+import datetime
 import threading
 from urllib.parse import urlparse
-from rtconfig.utils import OSUtils, object_merge
 from rtconfig.exceptions import ProjectNoFoundException
+from rtconfig.utils import OSUtils, object_merge, strftime
 
 try:
     import redis
     redis_usable = True
 except:
     redis_usable = False
+
+
+try:
+    import pymongo
+    import pymongo.uri_parser
+    mongodb_usable = True
+except:
+    mongodb_usable = False
 
 
 logger = logging.getLogger(__name__)
@@ -168,7 +178,6 @@ class JsonFileBackend(BaseBackend):
 class RedisBackend(BaseBackend):
     __visit_name__ = "redis"
     _config_data_scope = 'rt_config_data'
-    _client_data_scope = 'rt_config_client'
 
     @classmethod
     def configuration_schema(cls):
@@ -272,6 +281,156 @@ class RedisBackend(BaseBackend):
                     loop.run_until_complete(self.notify_callback(message))
             ps.unsubscribe('spub')
             logger.info("Cancel subscribe redis.")
+
+        self._thread = threading.Thread(target=loop_subscribe)
+        self._thread.setDaemon(True)
+        self._thread.start()
+        logger.info('Start subscribe thread.')
+
+
+class MongodbBackend(BaseBackend):
+    __visit_name__ = "mongodb"
+    _config_data_scope = 'rt_config_data'
+    _config_publish_scope = 'rt_config_publish'
+
+    @classmethod
+    def configuration_schema(cls):
+        return {
+            'mongodb_url': {
+                'required': True,
+                'type': 'string',
+                'desc': 'Mongodb链接'
+            },
+            'loop_interval': {
+                'required': False,
+                'type': 'int',
+                'desc': '消息检查间隔',
+                'default': 1
+            },
+            'open_notify': {
+                'required': False,
+                'type': 'bool',
+                'desc': '开启通知',
+                'default': True
+            }
+        }
+
+    def __init__(self, mongodb_url=None, loop_interval=None, open_notify=True, loop=None, notify_callback=None):
+        super().__init__(loop, notify_callback)
+        self.mongodb_url = mongodb_url
+        self.open_notify = open_notify
+        self.loop_interval = loop_interval
+        self._tsp = None
+        self._thread = None
+        self._clear_date = None
+        self.async_lock = asyncio.Lock()
+        if not mongodb_usable:
+            raise RuntimeError('You need install [pymongo] package.')
+
+    @property
+    def db_client(self):
+        logger.debug("Creating Mongodb connection (%s)", self.mongodb_url)
+        res = pymongo.uri_parser.parse_uri(self.mongodb_url, warn=True)
+        db_connection = pymongo.MongoClient(self.mongodb_url)
+        return db_connection[res["database"]]
+
+    def read(self, config_name, default=None, check_exist=False):
+        model = self.db_client[self._config_data_scope].find_one({'config_name': config_name})
+        if not model:
+            if check_exist:
+                raise ProjectNoFoundException(config_name=config_name)
+            else:
+                return default
+        return model['data']
+
+    async def write(self, config_name, source_data, merge=False):
+        db = self.db_client
+        if merge:
+            object_merge(self.read(config_name), source_data)
+        model = db[self._config_data_scope].find_one({'config_name': config_name})
+        if not model:
+            db[self._config_data_scope].insert_one(dict(
+                config_name=config_name,
+                data=source_data,
+                created=datetime.datetime.now(),
+                lut=datetime.datetime.now(),
+            ))
+        else:
+            db[self._config_data_scope].update_one(
+                {'config_name': config_name},
+                {'$set': dict(
+                    data=source_data,
+                    lut=datetime.datetime.now()
+                )}
+            )
+        await self.publish('callback_config_changed', config_name)
+
+    def iter_backend(self):
+        return (i['config_name'] for i in self.db_client[self._config_data_scope].find())
+
+    async def delete(self, config_name):
+        self.db_client[self._config_data_scope].remove({'config_name': config_name})
+        await self.publish('callback_config_changed', config_name)
+
+    async def publish(self, callback_func, *args, **kwargs):
+        if not self.open_notify:
+            return
+        async with self.async_lock:
+            self.db_client[self._config_publish_scope].insert_one(dict(
+                tsp=int(time.time() * 1000000),
+                message=self.get_callback_message(
+                    callback_func, *args, **kwargs),
+                created=datetime.datetime.now(),
+            ))
+            await asyncio.sleep(0.01)
+
+    def get_newest_message(self, init=False):
+        if init:
+            ret = list(self.db_client[self._config_publish_scope]
+                       .find().sort([("tsp", -1)]).limit(1))
+            if ret:
+                self._tsp = ret[0]['tsp']
+        else:
+            params = {"tsp": {"$gt": self._tsp}} if self._tsp else {}
+            ret = list(self.db_client[self._config_publish_scope]
+                       .find(params).sort([("tsp", 1)]))
+        return ret
+
+    def clear_history_message(self):
+        date_str = strftime(datetime.datetime.now(), '%Y-%m-%d')
+        if date_str == self._clear_date:
+            return
+        self.db_client[self._config_publish_scope].remove({'created': {'$lt': date_str}})
+        self._clear_date = date_str
+
+    def subscribe(self):
+        if not (self.open_notify and self.notify_callback):
+            return
+
+        def init_loop():
+            try:
+                return asyncio.get_event_loop()
+            except RuntimeError:
+                loop = asyncio.new_event_loop()
+                asyncio.set_event_loop(loop)
+                return asyncio.get_event_loop()
+
+        def loop_subscribe():
+            running = True
+            self.get_newest_message(init=True)
+            while running:
+                self.clear_history_message()
+                for item in self.get_newest_message():
+                    message = item['message']
+                    logger.info(f"{os.getpid()} From mongodb get message : %s", message)
+                    if message == 'over':
+                        logger.info("Stop subscribe mongodb.")
+                        running = False
+                    self._tsp = item['tsp']
+                    loop = self.loop or init_loop()
+                    loop.run_until_complete(self.notify_callback(message))
+                time.sleep(self.loop_interval)
+            logger.info("Cancel subscribe mongodb.")
 
         self._thread = threading.Thread(target=loop_subscribe)
         self._thread.setDaemon(True)

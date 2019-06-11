@@ -5,7 +5,7 @@ from alita import Alita
 from rtconfig import RtConfig
 from alita_session import Session
 from alita_login import LoginManager
-from rtconfig.auth import FileAuthManager, RedisAuthManager
+from rtconfig.auth import *
 
 DEFAULT_CONFIG = {
     'STORE_PATH': '~/rtconfig',
@@ -28,6 +28,12 @@ def transfer_redis_url(redis_url):
     )
 
 
+def transfer_mongodb_url(mongodb_url):
+    import pymongo.uri_parser
+    res = pymongo.uri_parser.parse_uri(mongodb_url, warn=True)
+    return dict(host=mongodb_url, db=res["database"])
+
+
 def init_config(server_app):
     store_type = server_app.config['STORE_TYPE']
     if store_type == 'json_file':
@@ -41,6 +47,11 @@ def init_config(server_app):
         server_app.config['SESSION_ENGINE'] = 'alita_session.redis'
         server_app.config['SESSION_ENGINE_CONFIG'] = transfer_redis_url(redis_url)
         server_app.config['AUTH_MANAGER'] = RedisAuthManager(server_app)
+    elif store_type == 'mongodb':
+        mongodb_url = server_app.config['MONGODB_URL']
+        server_app.config['SESSION_ENGINE'] = 'alita_session.mongo'
+        server_app.config['SESSION_ENGINE_CONFIG'] = transfer_mongodb_url(mongodb_url)
+        server_app.config['AUTH_MANAGER'] = MongodbAuthManager(server_app)
     else:
         raise RuntimeError('Store type %s not support!' % store_type)
 

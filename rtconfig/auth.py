@@ -14,6 +14,15 @@ try:
 except:
     redis_usable = False
 
+
+try:
+    import pymongo
+    import pymongo.uri_parser
+    mongodb_usable = True
+except:
+    mongodb_usable = False
+
+
 logger = logging.getLogger(__name__)
 
 
@@ -135,3 +144,41 @@ class RedisAuthManager(AuthManager):
     def save_all(self, all_user):
         self.redis_client.hmset(self._auth_data_scope, {
             k: json.dumps(v) for k, v in all_user.items()})
+
+
+class MongodbAuthManager(AuthManager):
+    _auth_data_scope = 'rt_auth_data'
+
+    def __init__(self, app):
+        super().__init__(app)
+        self.mongodb_url = self.app.config['MONGODB_URL']
+        if not mongodb_usable:
+            raise RuntimeError('You need install [pymongo] package.')
+        self.init_admin()
+
+    @property
+    def db_client(self):
+        logger.debug("Creating Mongodb connection (%s)", self.mongodb_url)
+        res = pymongo.uri_parser.parse_uri(self.mongodb_url, warn=True)
+        db_connection = pymongo.MongoClient(self.mongodb_url)
+        return db_connection[res["database"]]
+
+    def get_all(self):
+        return {i['username']: i for i in self.db_client[self._auth_data_scope].find()}
+
+    def save_all(self, all_user):
+        db = self.db_client
+        for username, user in all_user.items():
+            model = db[self._auth_data_scope].find_one({'username': username})
+            if model:
+                db[self._auth_data_scope].update_one(
+                    {'username': username}, {'$set': user})
+            else:
+                db[self._auth_data_scope].insert_one(user)
+
+
+__all__ = [
+    'FileAuthManager',
+    'RedisAuthManager',
+    'MongodbAuthManager'
+]

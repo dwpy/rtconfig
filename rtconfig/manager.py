@@ -8,7 +8,7 @@ from rtconfig.exceptions import *
 from rtconfig.mixin import CallbackHandleMixin
 from rtconfig.utils import to_hash, OSUtils, format_env_data, strftime
 from rtconfig.backend import default_backends
-from rtconfig.helpers import _, CallbackSet, LinkDict, WebsocketHandler
+from rtconfig.helpers import _, CallbackSet, LinkDict
 from contextlib import contextmanager
 
 

@@ -1,2 +1,2 @@
 STORE_TYPE = "json_file"
-STORE_PATH = '~/rtconfig/data'
+STORE_PATH = '~/rtconfig'

@@ -1,6 +1,9 @@
+import os
 import traceback
 from rtconfig.message import *
 from rtconfig.exceptions import ProjectNoFoundException
+
+logger = logging.getLogger(__name__)
 
 
 class CallbackHandleMixin:
@@ -34,6 +37,10 @@ class CallbackHandleMixin:
 
     async def callback_add_connection(self, ws_key, data):
         self._other_connection_pool[ws_key] = data
+        logger.info(f"{os.getpid()} Other connection num: %s",
+                    len(self._other_connection_pool))
 
     async def callback_remove_connection(self, ws_key):
         self._other_connection_pool.pop(ws_key, None)
+        logger.info(f"{os.getpid()} Other connection num: %s",
+                    len(self._other_connection_pool))

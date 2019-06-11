@@ -16,7 +16,7 @@ python -m rtconfig.server
 ```
 Command options:
 - --host: server host
-- --port: server port 
+- --port: server port
 - --auto-reload: if auto reload
 
 Or you can start server multiprocess by Gunicorn.
@@ -50,6 +50,7 @@ Configuration options:
 |    STORE_TYPE   |   json_file   |  data store type    |
 |    STORE_PATH   |  ~/rtconfig   |  data store directory, when STORE_TYPE=json_file    |
 |    REDIS_URL   | |  redis server url, when STORE_TYPE=redis, necessary provide    |
+|    MONGODB_URL   | |  mongodb server url, when STORE_TYPE=mongodb, necessary provide    |
 
 ## Config data store method
 json_file
@@ -57,6 +58,9 @@ json_file
 
 redis
 - REDIS_URL
+
+mongodb
+- MONGODB_URL
 
 ## Notes
 - `json_file` store type not support multiprocess deploy.
