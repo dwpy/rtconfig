@@ -140,7 +140,12 @@ client = RtConfigClient(
           <p>2. redis：</p>
           <blockquote class="layui-elem-quote layui-text">
           <p>STORE_TYPE = "redis"</p>
-          <p>REDIS_URL = "redis://192.168.4.254:6379/0"</p>
+          <p>REDIS_URL = "redis://127.0.0.1:6379/0"</p>
+          </blockquote>
+          <p>3. mongodb：</p>
+          <blockquote class="layui-elem-quote layui-text">
+          <p>STORE_TYPE = "mongodb"</p>
+          <p>MONGODB_URL = "mongodb://127.0.0.1:27017/rtconfig?connect=false"</p>
           </blockquote>
           <p>注意：如未定义存储方式，则默认使用json文件方式。</p>
         </div>
