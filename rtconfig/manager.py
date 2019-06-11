@@ -215,8 +215,8 @@ class ConfigManager(CallbackHandleMixin):
         self.store_backend = store_backend_class(**options)
         self.store_backend.subscribe()
 
-    def connection_num(self):
-        return len(self.get_connection_clients())
+    def connection_num(self, config_name):
+        return len(self.get_connection_clients(config_name))
 
     def config_project_num(self):
         return len(self.get_config_project_list())
@@ -228,7 +228,7 @@ class ConfigManager(CallbackHandleMixin):
     def get_config_project_info(self, config_name):
         config_project = self.get_config_project(config_name)
         return dict(
-            connect_num=self.connection_num(),
+            connect_num=self.connection_num(config_name),
             **config_project.detail_info()
         )
 
