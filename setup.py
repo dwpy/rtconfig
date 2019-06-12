@@ -25,6 +25,8 @@ setup(
     long_description_content_type="text/markdown",
     packages=[
         'rtconfig',
+        'rtconfig.static',
+        'rtconfig.templates',
     ],
     include_package_data=True,
     zip_safe=False,
