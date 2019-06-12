@@ -1,0 +1,4 @@
+include LICENSE
+include README.rst
+recursive-include rtconfig/static *
+recursive-include rtconfig/templates *

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 import io
 import re
-from setuptools import setup
+from setuptools import setup, find_packages
 from collections import OrderedDict
 
 with io.open('README.md', 'rt', encoding='utf8') as f:
@@ -23,11 +23,7 @@ setup(
     description='A simple python real-time remote configuration framework.',
     long_description=readme,
     long_description_content_type="text/markdown",
-    packages=[
-        'rtconfig',
-        'rtconfig.static',
-        'rtconfig.templates',
-    ],
+    packages=find_packages(),
     include_package_data=True,
     zip_safe=False,
     platforms='any',
