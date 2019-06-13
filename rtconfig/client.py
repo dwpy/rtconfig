@@ -61,7 +61,7 @@ class RtConfigClient:
         self.retry_interval = retry_interval
         self.recv_interval = recv_interval
         self.logger = logger or logging.getLogger(__name__)
-        self._config_module = None
+        self._load_config_modules = set()
         self.daemon = daemon
         self.auto_start = auto_start
         self.log_file_name = log_file_name
@@ -74,10 +74,9 @@ class RtConfigClient:
         self.force_exit = force_exit
         self.status = STATUS_RUN
         assert isinstance(self.context, dict)
-        if config_module is not None:
-            self.config_to_module(config_module)
         config_logging(self.log_file_name, logger=self.logger)
         self.load_environ()
+        self.make_config_module(config_module)
         if self.auto_start:
             self.run_forever()
 
@@ -85,6 +84,13 @@ class RtConfigClient:
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
         return asyncio.get_event_loop()
+
+    def make_config_module(self, config_module=None):
+        if isinstance(config_module, str):
+            config_module = [config_module]
+        elif not isinstance(config_module, list):
+            config_module = []
+        self.config_to_module(*config_module)
 
     def load_environ(self):
         load_dotenv()
@@ -102,19 +108,20 @@ class RtConfigClient:
     def connect_url(self):
         return os.path.join(self.ws_url, 'connect')
 
-    def config_to_module(self, config_module):
-        if isinstance(config_module, str):
-            config_module = importlib.import_module(config_module)
-        self._config_module = config_module
+    def config_to_module(self, *config_modules):
+        for module in config_modules:
+            if isinstance(module, str):
+                module = importlib.import_module(module)
+            self._load_config_modules.add(module)
 
     def change_module_config(self):
-        if self._config_module is None:
-            return
-        for key, value in self._data.items():
-            if isinstance(self._config_module, types.ModuleType):
-                self._config_module.__dict__[key] = value
-            elif isinstance(self._config_module, dict):
-                self._config_module[key] = value
+        def _load_config_module_data(config_module):
+            for key, value in self._data.items():
+                if isinstance(config_module, types.ModuleType):
+                    config_module.__dict__[key] = value
+                elif isinstance(config_module, dict):
+                    config_module[key] = value
+        list(map(_load_config_module_data, self._load_config_modules))
 
     def no_change(self, message):
         pass
