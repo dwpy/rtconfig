@@ -61,7 +61,7 @@ class RtConfigClient:
         self.retry_interval = retry_interval
         self.recv_interval = recv_interval
         self.logger = logger or logging.getLogger(__name__)
-        self._load_config_modules = set()
+        self._load_config_modules = []
         self.daemon = daemon
         self.auto_start = auto_start
         self.log_file_name = log_file_name
@@ -112,7 +112,7 @@ class RtConfigClient:
         for module in config_modules:
             if isinstance(module, str):
                 module = importlib.import_module(module)
-            self._load_config_modules.add(module)
+            self._load_config_modules.append(module)
 
     def change_module_config(self):
         def _load_config_module_data(config_module):
