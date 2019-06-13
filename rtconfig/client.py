@@ -108,7 +108,7 @@ class RtConfigClient:
         self._config_module = config_module
 
     def change_module_config(self):
-        if not self._config_module:
+        if self._config_module is None:
             return
         for key, value in self._data.items():
             if isinstance(self._config_module, types.ModuleType):
