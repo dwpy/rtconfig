@@ -125,9 +125,24 @@ def argparse_options():
         default=False,
         help="Rtconfig server auto reload"
     )
+    parser.add_argument(
+        '--store-type',
+        action="store",
+        default=DEFAULT_CONFIG['STORE_TYPE'],
+        help="Rtconfig server store type"
+    )
+    parser.add_argument(
+        '--broker-url',
+        action="store",
+        default=DEFAULT_CONFIG['BROKER_URL'],
+        help="Rtconfig server broker url"
+    )
     return parser.parse_args()
 
 
 if __name__ == '__main__':
     options = argparse_options().__dict__
+    DEFAULT_CONFIG['STORE_TYPE'] = options.pop('store_type', None)
+    DEFAULT_CONFIG['BROKER_URL'] = options.pop('broker_url', None)
+    app = create_app()
     app.run(**options)
