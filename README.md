@@ -48,19 +48,17 @@ Configuration options:
 |    DEBUG    |    false   |    debug mode    |
 |    MAX_CONNECTION  |   1024   |    max client connections    |
 |    STORE_TYPE   |   json_file   |  data store type    |
-|    STORE_PATH   |  ~/rtconfig   |  data store directory, when STORE_TYPE=json_file    |
-|    REDIS_URL   | |  redis server url, when STORE_TYPE=redis, necessary provide    |
-|    MONGODB_URL   | |  mongodb server url, when STORE_TYPE=mongodb, necessary provide    |
+|    BROKER_URL   |    |  data store broker url   |
 
-## Config data store method
+## Config data store method broker url
 json_file
-- STORE_PATH
+>BROKER_URL = "~/rtconfig" (默认可不填)
 
 redis
-- REDIS_URL
+>BROKER_URL = "redis://127.0.0.1:6379/0"
 
 mongodb
-- MONGODB_URL
+>BROKER_URL = "mongodb://127.0.0.1:27017/demo?connect=false"
 
 ## Notes
 - `json_file` store type not support multiprocess deploy.
