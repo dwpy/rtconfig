@@ -36,19 +36,21 @@ def transfer_mongodb_url(mongodb_url):
 
 def init_config(server_app):
     store_type = server_app.config['STORE_TYPE']
+    broker_url = server_app.config['BROKER_URL']
     if store_type == 'json_file':
-        broker_url = server_app.config['BROKER_URL']
         server_app.config['CONFIG_STORE_DIRECTORY'] = os.path.join(broker_url, 'data')
         server_app.config['SESSION_ENGINE'] = 'alita_session.fs'
         server_app.config['SESSION_DIRECTORY'] = os.path.join(broker_url, 'session')
         server_app.config['AUTH_MANAGER'] = FileAuthManager(server_app)
     elif store_type == 'redis':
+        server_app.config['REDIS_URL'] = broker_url
         server_app.config['SESSION_ENGINE'] = 'alita_session.redis'
-        server_app.config['SESSION_ENGINE_CONFIG'] = transfer_redis_url(server_app.config['BROKER_URL'])
+        server_app.config['SESSION_ENGINE_CONFIG'] = transfer_redis_url(broker_url)
         server_app.config['AUTH_MANAGER'] = RedisAuthManager(server_app)
     elif store_type == 'mongodb':
+        server_app.config['MONGODB_URL'] = broker_url
         server_app.config['SESSION_ENGINE'] = 'alita_session.mongo'
-        server_app.config['SESSION_ENGINE_CONFIG'] = transfer_mongodb_url(server_app.config['BROKER_URL'])
+        server_app.config['SESSION_ENGINE_CONFIG'] = transfer_mongodb_url(broker_url)
         server_app.config['AUTH_MANAGER'] = MongodbAuthManager(server_app)
     else:
         raise RuntimeError('Store type %s not support!' % store_type)
