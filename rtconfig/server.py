@@ -12,8 +12,36 @@ DEFAULT_CONFIG = {
     'BROKER_URL': '~/rtconfig',
 }
 
+STORE_CONFIG_SCHEME = {
+    'json_file': {
+        'backend_config_name': 'CONFIG_STORE_DIRECTORY',
+        'session_engine': 'alita_session.fs',
+        'auth_manager_class': FileAuthManager
+    },
+    'redis': {
+        'backend_config_name': 'REDIS_URL',
+        'session_engine': 'alita_session.redis',
+        'auth_manager_class': RedisAuthManager
+    },
+    'mongodb': {
+        'backend_config_name': 'MONGODB_URL',
+        'session_engine': 'alita_session.mongo',
+        'auth_manager_class': MongodbAuthManager
+    },
+}
 
-def transfer_redis_url(redis_url):
+
+def _transfer_config_json_file_url(store_path):
+    return os.path.join(store_path, 'data')
+
+
+def _transfer_session_json_file_url(store_path):
+    return dict(
+        path=os.path.join(store_path, 'session')
+    )
+
+
+def _transfer_session_redis_url(redis_url):
     redis_url = urlparse(redis_url)
     if redis_url.path:
         redis_db = int(redis_url.path[1])
@@ -28,32 +56,30 @@ def transfer_redis_url(redis_url):
     )
 
 
-def transfer_mongodb_url(mongodb_url):
+def _transfer_session_mongodb_url(mongodb_url):
     import pymongo.uri_parser
     res = pymongo.uri_parser.parse_uri(mongodb_url, warn=True)
-    return dict(host=mongodb_url, db=res["database"])
+    return dict(
+        host=mongodb_url,
+        db=res["database"]
+    )
 
 
 def init_config(server_app):
     store_type = server_app.config['STORE_TYPE']
     broker_url = server_app.config['BROKER_URL']
-    if store_type == 'json_file':
-        server_app.config['CONFIG_STORE_DIRECTORY'] = os.path.join(broker_url, 'data')
-        server_app.config['SESSION_ENGINE'] = 'alita_session.fs'
-        server_app.config['SESSION_DIRECTORY'] = os.path.join(broker_url, 'session')
-        server_app.config['AUTH_MANAGER'] = FileAuthManager(server_app)
-    elif store_type == 'redis':
-        server_app.config['REDIS_URL'] = broker_url
-        server_app.config['SESSION_ENGINE'] = 'alita_session.redis'
-        server_app.config['SESSION_ENGINE_CONFIG'] = transfer_redis_url(broker_url)
-        server_app.config['AUTH_MANAGER'] = RedisAuthManager(server_app)
-    elif store_type == 'mongodb':
-        server_app.config['MONGODB_URL'] = broker_url
-        server_app.config['SESSION_ENGINE'] = 'alita_session.mongo'
-        server_app.config['SESSION_ENGINE_CONFIG'] = transfer_mongodb_url(broker_url)
-        server_app.config['AUTH_MANAGER'] = MongodbAuthManager(server_app)
-    else:
+
+    if store_type not in STORE_CONFIG_SCHEME:
         raise RuntimeError('Store type %s not support!' % store_type)
+    scheme = STORE_CONFIG_SCHEME[store_type]
+    try:
+        backend_config = globals()['_transfer_config_%s_url' % store_type](broker_url)
+    except KeyError:
+        backend_config = broker_url
+    server_app.config[scheme['backend_config_name']] = backend_config
+    server_app.config['SESSION_ENGINE'] = scheme['session_engine']
+    server_app.config['SESSION_ENGINE_CONFIG'] = globals()['_transfer_session_%s_url' % store_type](broker_url)
+    server_app.config['AUTH_MANAGER'] = scheme['auth_manager_class'](server_app)
 
 
 def create_app():
