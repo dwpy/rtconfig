@@ -18,6 +18,8 @@ Command options:
 - --host: server host
 - --port: server port
 - --auto-reload: if auto reload
+- --store-type: rtconfig server store type
+- --broker-url: rtconfig server broker url
 
 Or you can start server multiprocess by Gunicorn.
 >gunicorn rtconfig.server:app -b 0.0.0.0:8089 -k alita.GunicornWorker -w 2
