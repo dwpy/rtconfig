@@ -332,7 +332,8 @@ class ConfigManager(CallbackHandleMixin):
             context=context,
             env=message.env,
             client_ip=message.request.environ.get("client")[0],
-            lut=strftime(message.lut)
+            lut=strftime(message.lut),
+            host_name=message.context.get('HOSTNAME', 'unknown')
         )
         try:
             config_project = self.get_config_project(message.config_name)
