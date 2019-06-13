@@ -10,6 +10,7 @@ from rtconfig.utils import to_hash, OSUtils, format_env_data, strftime
 from rtconfig.backend import default_backends
 from rtconfig.helpers import _, CallbackSet, LinkDict
 from contextlib import contextmanager
+from operator import itemgetter
 
 
 ENV_DOMAIN = {
@@ -352,4 +353,4 @@ class ConfigManager(CallbackHandleMixin):
             if config_name and data['config_name'] != config_name:
                 continue
             result.append(data)
-        return result
+        return sorted(result, key=itemgetter('host_name'))
