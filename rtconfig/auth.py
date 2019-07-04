@@ -32,6 +32,10 @@ class User(UserMixin):
         for k, v in self.data.items():
             setattr(self, k, v)
 
+    @property
+    def is_admin(self):
+        return self.username == 'admin'
+
     def get_id(self):
         try:
             return self.id
@@ -75,6 +79,11 @@ class AuthManager:
         kwargs['lut'] = strftime(datetime.now())
         all_user.setdefault(username, {})
         all_user[username].update(kwargs)
+        self.save_all(all_user)
+
+    def delete_user(self, username):
+        all_user = self.get_all()
+        all_user.pop(username, None)
         self.save_all(all_user)
 
     def check_password(self, username, password):

@@ -14,8 +14,10 @@
 
 <script type="text/html" id="barDemo">
   <a class="layui-btn layui-btn-sm" lay-event="detail">编辑配置</a>
-  <a class="layui-btn layui-btn-sm" lay-event="copy">复制</a>
-  <a class="layui-btn layui-btn-sm" lay-event="del">删除</a>
+  {% if current_user.is_admin %}
+      <a class="layui-btn layui-btn-sm" lay-event="copy">复制</a>
+      <a class="layui-btn layui-btn-sm" lay-event="del">删除</a>
+  {% endif %}
   <a class="layui-btn layui-btn-sm" lay-event="client">查看客户端</a>
 </script>
 </div>

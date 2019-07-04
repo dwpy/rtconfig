@@ -37,7 +37,15 @@
             <dd><a href="/rtc/client">配置连接</a></dd>
           </dl>
         </li>
-        <li class="layui-nav-item"><a href="/rtc/system">系统信息</a></li>
+          <li class="layui-nav-item layui-nav-itemed">
+          <a class="" href="javascript:;">系统管理</a>
+          <dl class="layui-nav-child">
+            {% if current_user.is_admin %}
+                <dd><a href="/rtc/users">用户列表</a></dd>
+            {% endif %}
+            <dd><a href="/rtc/system">系统信息</a></dd>
+          </dl>
+        </li>
       </ul>
     </div>
   </div>

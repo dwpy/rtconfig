@@ -28,6 +28,12 @@ async def page_login(request):
         return {'code': 0, "data": user['id']}
 
 
+@page_view.route('/users')
+@login_required
+async def page_users(request):
+    return await render_template(request, 'users.html')
+
+
 @page_view.route('/logout')
 async def page_logout(request):
     logout_user(request)
@@ -64,6 +70,47 @@ async def page_system_info(request):
         client_info=request.config_manager.client_info,
         system_info=request.config_manager.system_info,
     )
+
+
+@api_view.route('/user/list')
+@login_required
+async def user_list(request):
+    auth_manager = request.app.config['AUTH_MANAGER']
+    return page_result(request, list(auth_manager.get_all().values()))
+
+
+@api_view.route('/user', methods=['GET', 'POST', 'PUT', 'DELETE'])
+@login_required
+async def user_detail(request):
+    auth_manager = request.app.config['AUTH_MANAGER']
+    if request.method == "GET":
+        user_id = request.args['user_id']
+        user_data = auth_manager.get_user_by_id(user_id)
+        if not user_data:
+            raise GlobalApiException('用户信息不存在')
+        return {'code': 0, "data": user_data}
+    elif request.method == "POST":
+        username = request.json.get('username')
+        password = request.json.get('password')
+        if not (username and password):
+            raise GlobalApiException('用户名密码不能为空')
+        user = auth_manager.get_user(username)
+        if user:
+            raise GlobalApiException('用户名已存在')
+        auth_manager.update_user(username, password)
+    elif request.method == "PUT":
+        username = request.json.get('username')
+        password = request.json.get('password')
+        if not (username and password):
+            raise GlobalApiException('用户名密码不能为空')
+        user = auth_manager.get_user(username)
+        if not user:
+            raise GlobalApiException('用户名不存在')
+        auth_manager.update_user(username, password)
+    elif request.method == "DELETE":
+        username = request.args['username']
+        auth_manager.delete_user(username)
+    return {'code': 0, "data": {}}
 
 
 @api_view.route('/config/list')

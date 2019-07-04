@@ -1,0 +1,115 @@
+{% extends 'base.html' %}
+{% block body %}
+<div style="padding: 15px;">
+      <button class="layui-btn" id="create_user">创建用户</button>
+      <table class="layui-table" lay-data="{url:'/rtc/api/user/list', id:'users', page: true}" lay-filter="users">
+  <thead>
+    <tr>
+      <th lay-data="{field:'username', sort: true}">用户名称</th>
+      <th lay-data="{field:'password'}">用户密码</th>
+      <th lay-data="{field:'created'}">创建时间</th>
+      <th lay-data="{fixed:'right', align:'center', toolbar: '#barDemo'}">操作</th>
+    </tr>
+  </thead>
+</table>
+
+<script type="text/html" id="barDemo">
+  <a class="layui-btn layui-btn-sm" lay-event="edit">修改密码</a>
+  <a class="layui-btn layui-btn-sm" lay-event="del">删除</a>
+</script>
+</div>
+<script>
+layui.use('table', function(){
+  var table = layui.table;
+  var $ = layui.jquery;
+  var update_user_item = function (title, method, data) {
+        if (data != undefined){
+            $('#username').val(data.username);
+            $("#username").attr("disabled","disabled");
+        } else {
+            $('#username').val('');
+            $("#username").removeAttr("disabled");
+        }
+        $('#password').val('');
+        layer.open({
+            type: 1,
+            title: title,
+            shadeClose: true,
+            content: $("#user_frame"),
+            btn: ['确认', '取消'],
+            area: ['350px', '250px'],
+            yes: function (index, layero) {
+                var index_loading = layer.msg('正在' + title +'...', {
+                    icon:16, shade: 0.1, shadeClose: false
+                });
+                $.ajax({
+                    type: method,
+                    url: "/rtc/api/user",
+                    contentType: "application/json",
+                    data: JSON.stringify({
+                        "username": $('#username').val(),
+                        "password": $('#password').val()
+                    }),
+                    success: function (res) {
+                        layer.close(index_loading);
+                        if (res.code == 0) {
+                            location.reload();
+                        }
+                        else {
+                            layer.alert(res.msg);
+                        }
+                    }
+                });
+            }, btn2: function () {
+                layer.closeAll();
+            }
+        });
+  };
+  $('#create_user').on('click', function(){
+        update_user_item('创建用户', 'POST');
+  });
+
+  //监听工具条
+  table.on('tool(users)', function(obj){
+    var data = obj.data;
+    if(obj.event === 'edit'){
+        update_user_item('修改密码', 'PUT', data);
+    } else if(obj.event === 'del'){
+      layer.confirm('确认删除用户?', function(index){
+        $.ajax({
+              type: "DELETE",
+              url: "/rtc/api/user?username=" + data.username,
+              contentType: "application/json",
+              success:function(res){
+                if (res.code == 0) {
+                    location.reload();
+                }
+                else {
+                    layer.alert(res.msg);
+                }
+              }
+          });
+      });
+    }
+  });
+});
+</script>
+{% endblock %}
+{% block extend %}
+<div hidden id="user_frame">
+  <form class="layui-form" action="" style="margin-top: 20px; margin-right: 60px">
+  <div class="layui-form-item">
+    <label class="layui-form-label">用户名称</label>
+    <div class="layui-input-block">
+      <input type="text" id="username" required  lay-verify="required" placeholder="请输入用户名称" autocomplete="off" class="layui-input">
+    </div>
+  </div>
+    <div class="layui-form-item">
+    <label class="layui-form-label">用户密码</label>
+    <div class="layui-input-block">
+      <input type="text" id="password" required  lay-verify="required" placeholder="请输入用户密码" autocomplete="off" class="layui-input">
+    </div>
+  </div>
+</form>
+</div>
+{% endblock %}

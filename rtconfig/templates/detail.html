@@ -39,8 +39,10 @@
 
   <script type="text/html" id="barDemo">
     <a class="layui-btn layui-btn-sm" lay-event="edit">修改</a>
-    <a class="layui-btn layui-btn-sm" lay-event="del">删除</a>
-    <a class="layui-btn layui-btn-sm right" lay-event="history">查看历史</a>
+    {% if current_user.is_admin %}
+        <a class="layui-btn layui-btn-sm" lay-event="del">删除</a>
+        <a class="layui-btn layui-btn-sm right" lay-event="history">查看历史</a>
+    {% endif %}
   </script>
 </div>
 <script>
