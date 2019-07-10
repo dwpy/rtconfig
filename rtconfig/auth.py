@@ -111,6 +111,9 @@ class FileAuthManager(AuthManager):
         self.store_directory = os.path.abspath(
             os.path.expanduser(self.app.config['CONFIG_STORE_DIRECTORY']))
         self.user_file = os.path.join(self.store_directory, 'user.data')
+
+        if not self.os_util.directory_exists(self.store_directory):
+            self.os_util.makedirs(self.store_directory)
         self.init_admin()
 
     def get_all(self):
