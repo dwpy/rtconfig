@@ -16,7 +16,8 @@ from operator import itemgetter
 ENV_DOMAIN = {
     'default': {},
     'environ': {},
-    'history': {}
+    'history': {},
+    'parent': []
 }
 
 
@@ -79,8 +80,6 @@ class ConfigProject:
         ))
 
     async def set_source_data(self, data):
-        if not data:
-            data = ENV_DOMAIN
         assert isinstance(data, dict)
         source_data = self.source_data
         if self.env:
@@ -122,7 +121,16 @@ class ConfigProject:
     def get_env_data(self):
         env_data, source = {}, copy.deepcopy(self.source_data)
         env_variable = self.get_env_kv_data(source, 'environ')
-        for env in ['default', self.env, 'global']:
+        parent_configs = source.get('parent') or []
+        for parent in parent_configs:
+            parent_config_project = ConfigProject(parent, self.store_backend)
+            with parent_config_project.use_env(
+                    env=self.env,
+                    context=self.context,
+                    request=self.request
+            ):
+                env_data.update(parent_config_project.get_env_data())
+        for env in ['default', self.env]:
             env_data.update(self.get_env_kv_data(source, env))
 
         try:
@@ -155,9 +163,11 @@ class ConfigProject:
             ).get_push_message()
 
     def detail_info(self):
+        source_data = self.source_data
         return dict(
             config_name=self.config_name,
-            source_data=self.source_data
+            source_data=source_data,
+            parent=",".join(source_data.get('parent') or [])
         )
 
 
@@ -240,7 +250,7 @@ class ConfigManager(CallbackHandleMixin):
     def validate_name(self, name):
         return self._config_name_regex.match(name)
 
-    async def create_config_project(self, config_name, copy_from=None):
+    async def create_config_project(self, config_name, parent=None, copy_from=None):
         if not self.validate_name(config_name):
             raise ProjectNameErrorException(config_name=config_name)
         try:
@@ -249,11 +259,14 @@ class ConfigManager(CallbackHandleMixin):
             config_project = self.get_config_project(config_name)
         else:
             raise ProjectExistException(config_name=config_name)
-        env, data = None, None
         if copy_from:
             copy_from_project = self.get_config_project(copy_from)
             data = copy.deepcopy(copy_from_project.source_data)
-        with config_project.use_env(env):
+        elif parent:
+            data = dict(ENV_DOMAIN, parent=[parent])
+        else:
+            data = ENV_DOMAIN
+        with config_project.use_env():
             await config_project.set_source_data(data)
         return config_project
 

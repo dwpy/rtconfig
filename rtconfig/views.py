@@ -126,7 +126,9 @@ async def config_detail(request):
     config_manager = request.config_manager
     if request.method == "POST":
         await config_manager.create_config_project(
-            config_name, copy_from=request.json.get('copy_from')
+            config_name,
+            parent=request.json.get('parent'),
+            copy_from=request.json.get('copy_from')
         )
     elif request.method == "PUT":
         env = request.args.get('env')

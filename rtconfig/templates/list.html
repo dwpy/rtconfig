@@ -6,6 +6,7 @@
   <thead>
     <tr>
       <th lay-data="{field:'config_name', sort: true}">配置名称</th>
+      <th lay-data="{field:'parent', sort: true}">继承配置</th>
       <th lay-data="{field:'connect_num'}">客户端连接数</th>
       <th lay-data="{fixed:'right', align:'center', toolbar: '#barDemo'}">操作</th>
     </tr>
@@ -16,6 +17,7 @@
   <a class="layui-btn layui-btn-sm" lay-event="detail">编辑配置</a>
   {% if current_user.is_admin %}
       <a class="layui-btn layui-btn-sm" lay-event="copy">复制</a>
+      <a class="layui-btn layui-btn-sm" lay-event="child">子配置</a>
       <a class="layui-btn layui-btn-sm" lay-event="del">删除</a>
   {% endif %}
   <a class="layui-btn layui-btn-sm" lay-event="client">查看客户端</a>
@@ -61,6 +63,25 @@ layui.use('table', function(){
               url: "/rtc/api/config?config_name=" + value,
               contentType: "application/json",
               data: JSON.stringify({"copy_from": data.config_name}),
+              success:function(res){
+                if (res.code == 0) {
+                    location.reload();
+                }
+                else {
+                    layer.alert(res.msg);
+                }
+              }
+          });
+        });
+      }else if(obj.event === 'child'){
+        layer.prompt({
+          title: '创建子配置',
+        }, function(value, index){
+          $.ajax({
+              type: "POST",
+              url: "/rtc/api/config?config_name=" + value,
+              contentType: "application/json",
+              data: JSON.stringify({"parent": data.config_name}),
               success:function(res){
                 if (res.code == 0) {
                     location.reload();
