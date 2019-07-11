@@ -45,6 +45,7 @@ class User(UserMixin):
 
 class AuthManager:
     __charset__ = "utf-8"
+    _auth_data_scope = 'auth_user'
 
     def __init__(self, app):
         self.app = app
@@ -129,7 +130,6 @@ class FileAuthManager(AuthManager):
 
 
 class RedisAuthManager(AuthManager):
-    _auth_data_scope = 'rt_auth_data'
 
     def __init__(self, app):
         super().__init__(app)
@@ -159,7 +159,6 @@ class RedisAuthManager(AuthManager):
 
 
 class MongodbAuthManager(AuthManager):
-    _auth_data_scope = 'rt_auth_data'
 
     def __init__(self, app):
         super().__init__(app)

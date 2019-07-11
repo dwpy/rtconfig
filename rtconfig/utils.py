@@ -14,6 +14,7 @@ import click
 import hashlib
 import time
 import datetime
+from decimal import Decimal
 from functools import partial
 from collections import defaultdict
 
@@ -339,3 +340,25 @@ def format_env_data(env_data, **variable):
             data = data.format_map(defaultdict(str, **variable))
         return data
     return _convert(env_data)
+
+
+def format_data(data_list):
+    from bson.objectid import ObjectId
+    from mongoengine.fields import DecimalField
+
+    def _convert(data):
+        if isinstance(data, dict):
+            for key, value in data.items():
+                data[key] = _convert(value)
+        elif isinstance(data, list):
+            for idx, value in enumerate(data):
+                data[idx] = _convert(value)
+        elif isinstance(data, datetime.datetime):
+            data = datetime.datetime.strftime(data, "%Y-%m-%d %H:%M:%S")
+        elif isinstance(data, ObjectId):
+            data = str(data)
+        elif isinstance(data, (Decimal, DecimalField)):
+            data = float(data)
+        return data
+
+    return _convert(data_list)

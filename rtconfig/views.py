@@ -2,6 +2,7 @@ from rtconfig.exceptions import *
 from rtconfig.helpers import get_json_data, page_result
 from alita import Blueprint, render_template, RedirectResponse
 from alita_login import login_required, login_user, logout_user
+from rtconfig.utils import format_data
 
 api_view = Blueprint('api_view', url_prefix='/rtc/api')
 page_view = Blueprint('page_view', url_prefix='/rtc')
@@ -76,7 +77,7 @@ async def page_system_info(request):
 @login_required
 async def user_list(request):
     auth_manager = request.app.config['AUTH_MANAGER']
-    return page_result(request, list(auth_manager.get_all().values()))
+    return page_result(request, [format_data(i) for i in auth_manager.get_all().values()])
 
 
 @api_view.route('/user', methods=['GET', 'POST', 'PUT', 'DELETE'])
