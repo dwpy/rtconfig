@@ -187,6 +187,9 @@ class MongodbAuthManager(AuthManager):
             else:
                 db[self._auth_data_scope].insert_one(user)
 
+    def delete_user(self, username):
+        self.db_client[self._auth_data_scope].remove({'username': username})
+
 
 __all__ = [
     'FileAuthManager',
