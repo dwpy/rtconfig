@@ -50,9 +50,8 @@ class RtConfigClient:
                  context=None,
                  debug=False,
                  env='default',
-                 force_exit=True,
-                 run_loop=True):
-        self._data = None
+                 force_exit=True):
+        self._data = {}
         self._thread = None
         self.debug = debug
         self.config_name = config_name
@@ -72,7 +71,6 @@ class RtConfigClient:
         self.context = context or {}
         self.env = env
         self.task = None
-        self.run_loop = run_loop
         self.force_exit = force_exit
         self.status = STATUS_RUN
         assert isinstance(self.context, dict)
@@ -234,7 +232,7 @@ class RtConfigClient:
             if self.force_exit:
                 raise ex
             self.logger.exception(traceback.format_exc())
-        if not self.run_loop:
+        if self.data.get('CLIENT_RUN_LOOP') is False:
             return
         try:
             import uwsgidecorators
