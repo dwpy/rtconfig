@@ -86,7 +86,7 @@ class RtConfigClient:
         return asyncio.get_event_loop()
 
     def make_config_module(self, config_module=None):
-        if isinstance(config_module, str):
+        if isinstance(config_module, (str, dict, types.ModuleType)):
             config_module = [config_module]
         elif not isinstance(config_module, list):
             config_module = []
