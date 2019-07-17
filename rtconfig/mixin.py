@@ -20,7 +20,7 @@ class CallbackHandleMixin:
         except ProjectNoFoundException:
             return
 
-        def _notify_config_changed(cn):
+        async def _notify_config_changed(cn):
             for ws in self._connection_pool.get(cn) or []:
                 message = self._connection_message.get(ws)
                 if not (message and message.config_name == cn):
@@ -37,9 +37,9 @@ class CallbackHandleMixin:
                                  cn, message.context['pid'])
                 await ws.send(push_message)
 
-        _notify_config_changed(config_name)
+        await _notify_config_changed(config_name)
         for depend_config in self.iter_dependency_config(config_name):
-            _notify_config_changed(depend_config)
+            await _notify_config_changed(depend_config)
 
     async def callback_add_connection(self, ws_key, data):
         self._other_connection_pool[ws_key] = data
