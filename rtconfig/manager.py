@@ -367,3 +367,10 @@ class ConfigManager(CallbackHandleMixin):
                 continue
             result.append(data)
         return sorted(result, key=itemgetter('host_name'))
+
+    def iter_dependency_config(self, config_name):
+        for config in self.store_backend.iter_backend():
+            config_project = self.get_config_project(config)
+            if config_name not in config_project.source_data['parent']:
+                continue
+            yield config
