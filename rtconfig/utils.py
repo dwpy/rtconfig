@@ -328,6 +328,9 @@ def convert_dt(value):
 
 
 def format_env_data(env_data, **variable):
+    class SafeDict(dict):
+        def __missing__(self, key):
+            return '{' + key + '}'
 
     def _convert(data):
         if isinstance(data, dict):
@@ -337,7 +340,7 @@ def format_env_data(env_data, **variable):
             for idx, value in enumerate(data):
                 data[idx] = _convert(value)
         elif isinstance(data, str):
-            data = data.format_map(defaultdict(str, **variable))
+            data = data.format_map(SafeDict(**variable))
         return data
     return _convert(env_data)
 
