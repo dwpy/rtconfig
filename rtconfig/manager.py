@@ -359,7 +359,7 @@ class ConfigManager(CallbackHandleMixin):
         return data
 
     def get_connection_clients(self, config_name=None):
-        result, client_list = [], self._other_connection_pool
+        result, client_list = [], copy.deepcopy(self._other_connection_pool)
         client_list.update({ws.ws_key: self.format_message_data(message)
                             for ws, message in self._connection_message.items()})
         for data in client_list.values():

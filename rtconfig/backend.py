@@ -61,9 +61,7 @@ class BaseBackend:
         raise NotImplementedError
 
     async def publish(self, callback_func, *args, **kwargs):
-        if self.notify_callback:
-            await self.notify_callback(self.get_callback_message(
-                callback_func, *args, **kwargs))
+        pass
 
     def subscribe(self):
         pass
