@@ -21,9 +21,6 @@ def config_logging(log_file_name=None, logger=None, level=logging.INFO, customiz
         customize_handler.setFormatter(logging.Formatter(formatter))
         customize_handler.setLevel(level)
         logger.addHandler(customize_handler)
-    if logger:
-        logger.setLevel(logging.INFO)
-        logger.addHandler(logging.StreamHandler())
 
 
 @attr.s
