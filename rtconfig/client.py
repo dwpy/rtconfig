@@ -38,7 +38,7 @@ class RtConfigClient:
     ]
 
     def __init__(self,
-                 name,,
+                 name,
                  url=None,
                  logger=None,
                  ping_interval=60 * 5,
