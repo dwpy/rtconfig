@@ -37,8 +37,9 @@ class RtConfigClient:
         'force_exit'
     ]
 
-    def __init__(self, config_name,
-                 ws_url=None,
+    def __init__(self,
+                 name,,
+                 url=None,
                  logger=None,
                  ping_interval=60 * 5,
                  retry_interval=5,
@@ -54,8 +55,8 @@ class RtConfigClient:
         self._data = {}
         self._thread = None
         self.debug = debug
-        self.config_name = config_name
-        self.ws_url = ws_url
+        self.config_name = name
+        self.ws_url = url
         self.hash_code = ''
         self.ping_interval = ping_interval
         self.retry_interval = retry_interval
