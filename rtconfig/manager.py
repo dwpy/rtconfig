@@ -188,8 +188,6 @@ class ConfigManager(CallbackHandleMixin):
         self.store_type = store_type or self.app.config.get(
             'STORE_TYPE', self._default_store_type)
         self.store_backend = None
-        self.rt_log = self.app.config.get("RT_SERVER_LOG", True)
-        config_logging(self.log_file_name, self.logger)
         self.init_store_backend_instance()
 
     @property
