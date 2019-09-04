@@ -119,8 +119,7 @@ class ConfigProject:
         return {i['key']: i['value'] for i in env_data.values()}
 
     def get_env_data(self):
-        env_data, source = {}, copy.deepcopy(self.source_data)
-        env_variable = self.get_env_kv_data(source, 'environ')
+        env_data, env_var, source = {}, {}, copy.deepcopy(self.source_data)
         parent_configs = source.get('parent') or []
         for parent in parent_configs:
             parent_config_project = ConfigProject(parent, self.store_backend)
@@ -130,20 +129,23 @@ class ConfigProject:
                     request=self.request
             ):
                 env_data.update(parent_config_project.get_env_data())
+                env_var.update(parent_config_project.get_env_kv_data(
+                    parent_config_project.source_data, 'environ'))
         for env in ['default', self.env]:
             env_data.update(self.get_env_kv_data(source, env))
+        env_var.update(self.get_env_kv_data(source, 'environ'))
 
         try:
             if self.context:
                 environ = copy.copy(self.context['environ'])
                 environ.update(self.context)
                 for key, value in environ.items():
-                    if key not in env_variable:
+                    if key not in env_var:
                         continue
-                    env_variable[key] = value
+                    env_var[key] = value
         except:
             pass
-        return format_env_data(env_data, **env_variable)
+        return format_env_data(env_data, **env_var)
 
     def config_message(self, message, response_mode=RESPONSE_MODE_NOTIFY):
         with self.use_env(message.env, message.context):
