@@ -28,6 +28,7 @@ class RtConfigClient:
         'LS_COLORS'
     ]
     _environ_variables = [
+        'name',
         'ws_url',
         'env',
         'auto_start',
