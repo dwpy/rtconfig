@@ -7,7 +7,7 @@ from datetime import datetime
 from urllib.parse import urlparse
 from rtconfig.utils import OSUtils, strftime
 from rtconfig.exceptions import GlobalApiException
-from alita_login import UserMixin
+from alita_login import UserMixin, AnonymousUserMixin
 try:
     import redis
     redis_usable = True
@@ -21,6 +21,8 @@ try:
     mongodb_usable = True
 except:
     mongodb_usable = False
+
+AnonymousUserMixin.id = 'anonymous'
 
 
 logger = logging.getLogger(__name__)
