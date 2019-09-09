@@ -27,8 +27,6 @@ logger = logging.getLogger(__name__)
 
 
 class User(UserMixin):
-    id = 'anonymous'
-
     def __init__(self, data=None):
         self.data = data or {}
         for k, v in self.data.items():
@@ -100,7 +98,7 @@ class AuthManager:
     def load_user(self, user):
         user = user if isinstance(user, dict) \
             else self.get_user_by_id(user)
-        return User(user or {})
+        return User(user) if user else None
 
     def init_admin(self):
         if 'admin' not in self.get_all():
