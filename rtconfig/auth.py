@@ -23,6 +23,7 @@ except:
     mongodb_usable = False
 
 AnonymousUserMixin.id = 'anonymous'
+AnonymousUserMixin.username = 'admin'
 
 
 logger = logging.getLogger(__name__)
