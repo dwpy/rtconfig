@@ -176,7 +176,7 @@ async def update_config_detail(request):
     if request.method in ["POST", "PUT"]:
         value = request.json.get('value')
         desc = request.json.get('desc')
-        if not value:
+        if value is not None:
             raise GlobalApiException('配置值不能为空')
         if request.method == "POST" and config_manager.env_key_exist(
                 config_name, env, key):
