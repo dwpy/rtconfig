@@ -10,6 +10,7 @@
       <div class="layui-tab-item layui-show">
         <button class="layui-btn" id="create_default">创建配置项</button>
         <button class="layui-btn" id="import_config">导入配置项</button>
+        <button class="layui-btn" id="export_config">导出配置项</button>
         <table class="layui-table" lay-data="{url:'/rtc/api/config/item?env=default&config_name={{config_name}}', id:'default_data', page: true}" lay-filter="default_data">
           <thead>
             <tr>
@@ -82,6 +83,30 @@ layui.use('table', function() {
           });
         });
   });
+
+    $('#export_config').on('click', function(){
+        $.ajax({
+              type: "GET",
+              url: "/rtc/api/config/export?env=default&config_name={{config_name}}",
+              contentType: "application/json",
+              success:function(res){
+                if (res.code == 0) {
+                    layer.open({
+                        formType: 2,
+                        content: '<textarea class="layui-textarea" style="height: 700px">'
+                        + JSON.stringify(res.data, null, 8) + '</textarea>',
+                        title: '配置数据',
+                        area: ['800px', '700px']
+                    }, function(value, index){
+                      layer.close(index);
+                    });
+                }
+                else {
+                    layer.alert(res.msg);
+                }
+              }
+          });
+    });
 
     var update_config_item = function (env, title, method, data) {
         if (data != undefined){

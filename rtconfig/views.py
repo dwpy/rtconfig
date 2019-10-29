@@ -155,6 +155,19 @@ async def config_detail(request):
     }
 
 
+@api_view.route('/config/export', methods=['GET'])
+@login_required
+async def config_export(request):
+    config_name = request.args['config_name']
+    config_manager = request.config_manager
+    config_data = config_manager.get_config_project_info(
+        config_name)['source_data'].get('default') or {}
+    return {
+        'code': 0,
+        "data": {k: v['value'] for k, v in config_data.items()}
+    }
+
+
 @api_view.route('/config/item', methods=['GET', 'POST', 'PUT', 'DELETE'])
 @login_required
 async def update_config_detail(request):
