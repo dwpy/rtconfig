@@ -189,7 +189,7 @@ class RedisBackend(BaseBackend):
                 'required': False,
                 'type': 'bool',
                 'desc': '开启通知',
-                'default': True
+                'default': False
             },
             'notify_channel': {
                 'required': False,
@@ -199,7 +199,7 @@ class RedisBackend(BaseBackend):
             },
         }
 
-    def __init__(self, redis_url=None, open_notify=True, notify_channel=None, loop=None, notify_callback=None):
+    def __init__(self, redis_url=None, open_notify=False, notify_channel=None, loop=None, notify_callback=None):
         super().__init__(loop, notify_callback)
         self.redis_url = redis_url
         self.open_notify = open_notify
@@ -309,11 +309,11 @@ class MongodbBackend(BaseBackend):
                 'required': False,
                 'type': 'bool',
                 'desc': '开启通知',
-                'default': True
+                'default': False
             }
         }
 
-    def __init__(self, mongodb_url=None, loop_interval=None, open_notify=True, loop=None, notify_callback=None):
+    def __init__(self, mongodb_url=None, loop_interval=None, open_notify=False, loop=None, notify_callback=None):
         super().__init__(loop, notify_callback)
         self.mongodb_url = mongodb_url
         self.open_notify = open_notify
