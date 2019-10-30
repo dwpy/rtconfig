@@ -214,7 +214,7 @@ layui.use('table', function() {
     table.on('tool(env_data)', function (obj) {
         var data = obj.data;
         if (obj.event === 'edit') {
-            update_config_item('env', '修改变量', 'PUT', data)
+            update_config_item('environ', '修改变量', 'PUT', data)
         } else if (obj.event === 'del') {
             layer.confirm('确认删除环境变量?', function (index) {
                 $.ajax({
