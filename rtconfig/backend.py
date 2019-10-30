@@ -364,7 +364,7 @@ class MongodbBackend(BaseBackend):
         await self.publish('callback_config_changed', config_name)
 
     def iter_backend(self):
-        return (i['config_name'] for i in self.db_client[self._config_data_scope].find())
+        return (i for i in self.db_client[self._config_data_scope].find())
 
     async def delete(self, config_name):
         self.db_client[self._config_data_scope].remove({'config_name': config_name})

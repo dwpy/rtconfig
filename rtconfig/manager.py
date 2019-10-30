@@ -52,7 +52,13 @@ class ConfigProject:
     
     @property
     def source_data(self):
+        if self._source_data:
+            return self._source_data
         return self.store_backend.read(self.config_name, ENV_DOMAIN)
+
+    @source_data.setter
+    def source_data(self, value):
+        self._source_data = value
 
     def _get_data_from_env(self):
         return self.source_data.get(self.env) or {} \
@@ -164,8 +170,8 @@ class ConfigProject:
                 response_mode=response_mode
             ).get_push_message()
 
-    def detail_info(self):
-        source_data = self.source_data
+    def detail_info(self, source_data=None):
+        source_data = source_data or self.source_data
         return dict(
             config_name=self.config_name,
             source_data=source_data,
@@ -233,14 +239,19 @@ class ConfigManager(CallbackHandleMixin):
         return len(self.get_config_project_list())
 
     def get_config_project(self, config_name, check_exist=False):
-        self.store_backend.read(config_name, check_exist=check_exist)
+        #self.store_backend.read(config_name, check_exist=check_exist)
         return ConfigProject(config_name, self.store_backend)
 
-    def get_config_project_info(self, config_name):
+    def get_config_project_info(self, config_data):
+        if isinstance(config_data, dict):
+            config_name = config_data['config_name']
+            data = config_data['data']
+        else:
+            config_name, data = config_data, None
         config_project = self.get_config_project(config_name)
         return dict(
             connect_num=self.connection_num(config_name),
-            **config_project.detail_info()
+            **config_project.detail_info(data)
         )
 
     def get_config_project_list(self):
