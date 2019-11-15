@@ -380,7 +380,6 @@ class ConfigManager(CallbackHandleMixin):
 
     def iter_dependency_config(self, config_name):
         for config in self.store_backend.iter_backend():
-            config_project = self.get_config_project(config)
-            if config_name not in config_project.source_data['parent']:
-                continue
-            yield config
+            parents = config["data"].get('parent') or []
+            if config_name in parents:
+                yield config['config_name']
