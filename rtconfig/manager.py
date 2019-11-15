@@ -230,7 +230,6 @@ class ConfigManager(CallbackHandleMixin):
             self.app.config, loop=self.app.loop,
             notify_callback=self.notify_changed)
         self.store_backend = store_backend_class(**options)
-        self.store_backend.subscribe()
 
     def connection_num(self, config_name=None):
         return len(self.get_connection_clients(config_name))
@@ -323,9 +322,9 @@ class ConfigManager(CallbackHandleMixin):
             desc = 'report' if ws in self._connection_pool[config_name] else 'first'
             self._connection_pool[config_name].add(ws)
             self._connection_message[ws] = message
-            await self.store_backend.publish(
-                'callback_add_connection', ws.ws_key,
-                self.format_message_data(message))
+            # await self.store_backend.publish(
+            #     'callback_add_connection', ws.ws_key,
+            #     self.format_message_data(message))
             self.logger.info('[%s] Client %s connected, pid: %s.',
                              message.config_name, desc,
                              message.context['pid'])
@@ -334,7 +333,7 @@ class ConfigManager(CallbackHandleMixin):
 
     async def remove_connection(self, ws, message):
         try:
-            await self.store_backend.publish('callback_remove_connection', ws.ws_key)
+            # await self.store_backend.publish('callback_remove_connection', ws.ws_key)
             self._connection_pool[message.config_name].remove(ws)
             self.logger.info('[%s] Client disconnected: %s.',
                              message.config_name, message.context['pid'])

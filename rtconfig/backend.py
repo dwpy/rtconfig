@@ -61,18 +61,16 @@ class BaseBackend:
         raise NotImplementedError
 
     async def publish(self, callback_func, *args, **kwargs):
-        pass
-
-    def subscribe(self):
-        pass
-
-    @staticmethod
-    def get_callback_message(callback_func, *args, **kwargs):
-        return json.dumps(dict(
+        if not (self.open_notify and self.notify_callback):
+            return
+        self.notify_callback(json.dumps(dict(
             func=callback_func,
             args=list(args),
             kwargs=kwargs
-        ))
+        )))
+
+    def subscribe(self):
+        pass
 
     @classmethod
     def validate_options(cls, app_config, **kwargs):
@@ -189,7 +187,7 @@ class RedisBackend(BaseBackend):
                 'required': False,
                 'type': 'bool',
                 'desc': '开启通知',
-                'default': False
+                'default': True
             },
             'notify_channel': {
                 'required': False,
@@ -247,12 +245,6 @@ class RedisBackend(BaseBackend):
         self.redis_client.hdel(self._config_data_scope, config_name)
         await self.publish('callback_config_changed', config_name)
 
-    async def publish(self, callback_func, *args, **kwargs):
-        if not self.open_notify:
-            return
-        self.redis_client.publish(self.notify_channel, self.get_callback_message(
-                callback_func, *args, **kwargs))
-
     def subscribe(self):
         if not (self.open_notify and self.notify_callback):
             return
@@ -306,7 +298,7 @@ class MongodbBackend(BaseBackend):
                 'default': 1
             },
             'open_notify': {
-                'required': False,
+                'required': True,
                 'type': 'bool',
                 'desc': '开启通知',
                 'default': False
@@ -369,18 +361,6 @@ class MongodbBackend(BaseBackend):
     async def delete(self, config_name):
         self.db_client[self._config_data_scope].remove({'config_name': config_name})
         await self.publish('callback_config_changed', config_name)
-
-    async def publish(self, callback_func, *args, **kwargs):
-        if not self.open_notify:
-            return
-        async with self.async_lock:
-            self.db_client[self._config_publish_scope].insert_one(dict(
-                tsp=int(time.time() * 1000000),
-                message=self.get_callback_message(
-                    callback_func, *args, **kwargs),
-                created=datetime.datetime.now(),
-            ))
-            await asyncio.sleep(0.01)
 
     def get_newest_message(self, init=False):
         if init:
