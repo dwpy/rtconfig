@@ -10,6 +10,7 @@ from rtconfig.auth import *
 DEFAULT_CONFIG = {
     'STORE_TYPE': 'json_file',
     'BROKER_URL': '~/rtconfig',
+    'LOGIN_DISABLED': True,
 }
 
 STORE_CONFIG_SCHEME = {
