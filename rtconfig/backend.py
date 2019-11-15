@@ -64,7 +64,7 @@ class BaseBackend:
     async def publish(self, callback_func, *args, **kwargs):
         if not (self.open_notify and self.notify_callback):
             return
-        self.notify_callback(json.dumps(dict(
+        await self.notify_callback(json.dumps(dict(
             func=callback_func,
             args=list(args),
             kwargs=kwargs
