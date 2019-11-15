@@ -40,8 +40,9 @@ class BaseBackend:
     __charset__ = "utf-8"
     __visit_name__ = 'base'
 
-    def __init__(self, loop=None, notify_callback=None):
+    def __init__(self, loop=None, notify_callback=None, open_notify=True):
         self.loop = loop
+        self.open_notify = open_notify
         self.notify_callback = notify_callback
 
     @classmethod
@@ -197,8 +198,8 @@ class RedisBackend(BaseBackend):
             },
         }
 
-    def __init__(self, redis_url=None, open_notify=False, notify_channel=None, loop=None, notify_callback=None):
-        super().__init__(loop, notify_callback)
+    def __init__(self, redis_url=None, open_notify=True, notify_channel=None, loop=None, notify_callback=None):
+        super().__init__(loop, notify_callback, open_notify)
         self.redis_url = redis_url
         self.open_notify = open_notify
         self.notify_channel = notify_channel
@@ -305,8 +306,8 @@ class MongodbBackend(BaseBackend):
             }
         }
 
-    def __init__(self, mongodb_url=None, loop_interval=None, open_notify=False, loop=None, notify_callback=None):
-        super().__init__(loop, notify_callback)
+    def __init__(self, mongodb_url=None, loop_interval=None, open_notify=True, loop=None, notify_callback=None):
+        super().__init__(loop, notify_callback, open_notify)
         self.mongodb_url = mongodb_url
         self.open_notify = open_notify
         self.loop_interval = loop_interval
