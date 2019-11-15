@@ -298,7 +298,7 @@ class MongodbBackend(BaseBackend):
                 'default': 1
             },
             'open_notify': {
-                'required': True,
+                'required': False,
                 'type': 'bool',
                 'desc': '开启通知',
                 'default': False
