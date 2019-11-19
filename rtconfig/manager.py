@@ -263,12 +263,9 @@ class ConfigManager(CallbackHandleMixin):
     async def create_config_project(self, config_name, parent=None, copy_from=None):
         if not self.validate_name(config_name):
             raise ProjectNameErrorException(config_name=config_name)
-        try:
-            self.get_config_project(config_name, check_exist=True)
-        except ProjectNoFoundException:
-            config_project = self.get_config_project(config_name)
-        else:
+        if config_name in [i['config_name'] for i in self.get_config_project_list()]:
             raise ProjectExistException(config_name=config_name)
+        config_project = self.get_config_project(config_name)
         if copy_from:
             copy_from_project = self.get_config_project(copy_from)
             data = copy.deepcopy(copy_from_project.source_data)
