@@ -21,9 +21,6 @@ Command options:
 - --store-type: rtconfig server store type
 - --broker-url: rtconfig server broker url
 
-Or you can start server multiprocess by Gunicorn.
->gunicorn rtconfig.server:app -b 0.0.0.0:8089 -k alita.GunicornWorker -w 2
-
 ## Login account
 Both of initial user name and password is `admin`.
 If you want to change password or add new account, you need use command like this:
@@ -63,4 +60,4 @@ mongodb
 >BROKER_URL = "mongodb://127.0.0.1:27017/demo?connect=false"
 
 ## Notes
-- `json_file` store type not support multiprocess deploy.
+- `rtconfig` not support multiprocess deploy now.

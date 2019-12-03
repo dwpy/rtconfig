@@ -70,9 +70,6 @@ class BaseBackend:
             kwargs=kwargs
         )))
 
-    def subscribe(self):
-        pass
-
     @classmethod
     def validate_options(cls, app_config, **kwargs):
         options = kwargs
@@ -245,38 +242,6 @@ class RedisBackend(BaseBackend):
         self.redis_client.hdel(self._config_data_scope, config_name)
         await self.publish('callback_config_changed', config_name)
 
-    def subscribe(self):
-        if not (self.open_notify and self.notify_callback):
-            return
-
-        def init_loop():
-            try:
-                return asyncio.get_event_loop()
-            except RuntimeError:
-                loop = asyncio.new_event_loop()
-                asyncio.set_event_loop(loop)
-                return asyncio.get_event_loop()
-
-        def loop_subscribe():
-            ps = self.redis_client.pubsub()
-            ps.subscribe(self.notify_channel)
-            for item in ps.listen():
-                if item['type'] == 'message':
-                    message = item['data'].decode()
-                    logger.info(f"{os.getpid()} From {self.notify_channel} get message : %s", message)
-                    if item['data'] == 'over':
-                        logger.info("Stop subscribe redis.")
-                        break
-                    loop = self.loop or init_loop()
-                    loop.run_until_complete(self.notify_callback(message))
-            ps.unsubscribe('spub')
-            logger.info("Cancel subscribe redis.")
-
-        self._thread = threading.Thread(target=loop_subscribe)
-        self._thread.setDaemon(True)
-        self._thread.start()
-        logger.info('Start subscribe thread.')
-
 
 class MongodbBackend(BaseBackend):
     __visit_name__ = "mongodb"
@@ -291,12 +256,6 @@ class MongodbBackend(BaseBackend):
                 'type': 'string',
                 'desc': 'Mongodb链接'
             },
-            'loop_interval': {
-                'required': False,
-                'type': 'int',
-                'desc': '消息检查间隔',
-                'default': 1
-            },
             'open_notify': {
                 'required': False,
                 'type': 'bool',
@@ -305,10 +264,9 @@ class MongodbBackend(BaseBackend):
             }
         }
 
-    def __init__(self, mongodb_url=None, loop_interval=None, open_notify=True, loop=None, notify_callback=None):
+    def __init__(self, mongodb_url=None, open_notify=True, loop=None, notify_callback=None):
         super().__init__(loop, notify_callback, open_notify)
         self.mongodb_url = mongodb_url
-        self.loop_interval = loop_interval
         self._tsp = None
         self._thread = None
         self._clear_date = None
@@ -379,37 +337,3 @@ class MongodbBackend(BaseBackend):
             return
         self.db_client[self._config_publish_scope].remove({'created': {'$lt': date_str}})
         self._clear_date = date_str
-
-    def subscribe(self):
-        if not (self.open_notify and self.notify_callback):
-            return
-
-        def init_loop():
-            try:
-                return asyncio.get_event_loop()
-            except RuntimeError:
-                loop = asyncio.new_event_loop()
-                asyncio.set_event_loop(loop)
-                return asyncio.get_event_loop()
-
-        def loop_subscribe():
-            running = True
-            self.get_newest_message(init=True)
-            while running:
-                self.clear_history_message()
-                for item in self.get_newest_message():
-                    message = item['message']
-                    logger.info(f"{os.getpid()} From mongodb get message : %s", message)
-                    if message == 'over':
-                        logger.info("Stop subscribe mongodb.")
-                        running = False
-                    self._tsp = item['tsp']
-                    loop = self.loop or init_loop()
-                    loop.run_until_complete(self.notify_callback(message))
-                time.sleep(self.loop_interval)
-            logger.info("Cancel subscribe mongodb.")
-
-        self._thread = threading.Thread(target=loop_subscribe)
-        self._thread.setDaemon(True)
-        self._thread.start()
-        logger.info('Start subscribe thread.')
