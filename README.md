@@ -23,12 +23,7 @@ Command options:
 - --login-disable: bool, rtconfig server disable login
 - --config: str, rtconfig server config file path
 
-## Login account
-Both of initial user name and password is `admin`.
-If you want to change password or add new account, you need use command like this:
->python -m rtconfig.cli update_user {name} {password}
-
-## Client connection
+## Client connect
 Create a new python module `conf.py`, then write code like this:
 ```
 from rtconfig import RtConfigClient
