@@ -54,7 +54,7 @@ class ConfigProject:
     def source_data(self):
         if self._source_data:
             return self._source_data
-        return self.store_backend.read(self.config_name, ENV_DOMAIN)
+        return self.store_backend.read(self.config_name, default=ENV_DOMAIN)
 
     @source_data.setter
     def source_data(self, value):
@@ -125,7 +125,8 @@ class ConfigProject:
         return {i['key']: i['value'] for i in env_data.values()}
 
     def get_env_data(self):
-        env_data, env_var, source = {}, {}, copy.deepcopy(self.source_data)
+        env_data, env_var = {}, {}
+        source = copy.deepcopy(self.source_data)
         parent_configs = source.get('parent') or []
         for parent in parent_configs:
             parent_config_project = ConfigProject(parent, self.store_backend)
@@ -183,7 +184,6 @@ class ConfigManager(CallbackHandleMixin):
     _default_store_type = 'json_file'
     _connection_pool = LinkDict()
     _connection_message = LinkDict()
-    _other_connection_pool = {}
     _config_name_regex = re.compile('^[\u4e00-\u9fa5_a-zA-Z0-9_]+$')
 
     def __init__(self, app, os_utils=None, logger=None, log_file_name=None, store_type=None):
@@ -238,7 +238,8 @@ class ConfigManager(CallbackHandleMixin):
         return len(self.get_config_project_list())
 
     def get_config_project(self, config_name, check_exist=False):
-        #self.store_backend.read(config_name, check_exist=check_exist)
+        if check_exist:
+            self.store_backend.read(config_name, check_exist=True)
         return ConfigProject(config_name, self.store_backend)
 
     def get_config_project_info(self, config_data):
@@ -308,8 +309,9 @@ class ConfigManager(CallbackHandleMixin):
         try:
             if self.connection_num() > self.max_connection:
                 raise ConnectException(
-                    description='Number of connection is already the '
-                                'maximum %s.' % self.max_connection)
+                    'Number of connection is already the '
+                    'maximum %s.' % self.max_connection
+                )
             config_name = message.config_name
             self.get_config_project(config_name)
             self._connection_pool.setdefault(config_name, CallbackSet(
@@ -319,9 +321,6 @@ class ConfigManager(CallbackHandleMixin):
             desc = 'report' if ws in self._connection_pool[config_name] else 'first'
             self._connection_pool[config_name].add(ws)
             self._connection_message[ws] = message
-            # await self.store_backend.publish(
-            #     'callback_add_connection', ws.ws_key,
-            #     self.format_message_data(message))
             self.logger.info('[%s] Client %s connected, pid: %s.',
                              message.config_name, desc,
                              message.context['pid'])
@@ -330,7 +329,6 @@ class ConfigManager(CallbackHandleMixin):
 
     async def remove_connection(self, ws, message):
         try:
-            # await self.store_backend.publish('callback_remove_connection', ws.ws_key)
             self._connection_pool[message.config_name].remove(ws)
             self.logger.info('[%s] Client disconnected: %s.',
                              message.config_name, message.context['pid'])
@@ -366,9 +364,10 @@ class ConfigManager(CallbackHandleMixin):
         return data
 
     def get_connection_clients(self, config_name=None):
-        result, client_list = [], copy.deepcopy(self._other_connection_pool)
-        client_list.update({ws.ws_key: self.format_message_data(message)
-                            for ws, message in self._connection_message.items()})
+        result, client_list = [], {
+            ws.ws_key: self.format_message_data(message)
+            for ws, message in self._connection_message.items()
+        }
         for data in client_list.values():
             if config_name and data['config_name'] != config_name:
                 continue

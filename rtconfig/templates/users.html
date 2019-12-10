@@ -6,7 +6,7 @@
   <thead>
     <tr>
       <th lay-data="{field:'username', sort: true}">用户名称</th>
-      <th lay-data="{field:'password'}">用户密码</th>
+      <th lay-data="{field:'token', width: 350}">Token</th>
       <th lay-data="{field:'created'}">创建时间</th>
       <th lay-data="{fixed:'right', align:'center', toolbar: '#barDemo'}">操作</th>
     </tr>
@@ -16,6 +16,7 @@
 <script type="text/html" id="barDemo">
   <a class="layui-btn layui-btn-sm" lay-event="edit">修改密码</a>
   <a class="layui-btn layui-btn-sm" lay-event="del">删除</a>
+  <a class="layui-btn layui-btn-sm" lay-event="token">重置Token</a>
 </script>
 </div>
 <script>
@@ -80,6 +81,25 @@ layui.use('table', function(){
               type: "DELETE",
               url: "/rtc/api/user?username=" + data.username,
               contentType: "application/json",
+              success:function(res){
+                if (res.code == 0) {
+                    location.reload();
+                }
+                else {
+                    layer.alert(res.msg);
+                }
+              }
+          });
+      });
+    } else if(obj.event === 'token'){
+      layer.confirm('确认重置Token?', function(index){
+        $.ajax({
+              type: "PUT",
+              url: "/rtc/api/user/token",
+              contentType: "application/json",
+              data: JSON.stringify({
+                  "username": data.username,
+              }),
               success:function(res){
                 if (res.code == 0) {
                     location.reload();

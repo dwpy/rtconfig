@@ -1,6 +1,7 @@
 import os
 import io
 import json
+import uuid
 import hashlib
 import logging
 from datetime import datetime
@@ -23,13 +24,17 @@ except:
     mongodb_usable = False
 
 AnonymousUserMixin.id = 'anonymous'
-AnonymousUserMixin.is_admin = True
+AnonymousUserMixin.is_admin = False
 
 
 logger = logging.getLogger(__name__)
 
 
 class User(UserMixin):
+    id = None
+    token = None
+    username = None
+
     def __init__(self, data=None):
         self.data = data or {}
         for k, v in self.data.items():
@@ -49,6 +54,7 @@ class User(UserMixin):
 class AuthManager:
     __charset__ = "utf-8"
     _auth_data_scope = 'auth_user'
+    _auth_token_scope = 'auth_token'
 
     def __init__(self, app):
         self.app = app
@@ -63,11 +69,20 @@ class AuthManager:
     def save_all(self, all_user):
         raise NotImplementedError
 
+    def reset_token(self, username):
+        self.update_user(username, token=str(uuid.uuid1()))
+
     def get_user(self, username):
         return self.get_all().get(username)
 
     def get_user_by_id(self, user_id):
         return {i['id']: i for i in self.get_all().values()}.get(user_id)
+
+    def get_user_token(self, token):
+        for i in self.get_all().values():
+            if i['token'] == token:
+                return i
+        return None
 
     def update_user(self, username, password=None, **kwargs):
         all_user = self.get_all()
@@ -106,6 +121,7 @@ class AuthManager:
     def init_admin(self):
         if 'admin' not in self.get_all():
             self.update_user('admin', 'admin')
+            self.reset_token('admin')
 
 
 class FileAuthManager(AuthManager):
@@ -195,6 +211,7 @@ class MongodbAuthManager(AuthManager):
 
 
 __all__ = [
+    'AuthManager',
     'FileAuthManager',
     'RedisAuthManager',
     'MongodbAuthManager'

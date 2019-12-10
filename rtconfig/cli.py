@@ -47,6 +47,7 @@ def update_user(username, password):
     app = create_app()
     auth = app.config['AUTH_MANAGER']
     auth.update_user(username, password)
+    auth.reset_token(username)
     click.echo(f"Update user {username} success.")
 
 

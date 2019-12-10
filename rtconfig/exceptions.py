@@ -9,7 +9,7 @@ class BaseConfigException(Exception):
     """
     Baseclass for all HTTP exceptions.
     """
-    def __init__(self, code=None, description=None, **options):
+    def __init__(self, description=None, code=None, **options):
         if code is not None:
             self.code = code
         if description is not None:

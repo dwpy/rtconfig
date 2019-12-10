@@ -318,22 +318,3 @@ class MongodbBackend(BaseBackend):
     async def delete(self, config_name):
         self.db_client[self._config_data_scope].remove({'config_name': config_name})
         await self.publish('callback_config_changed', config_name)
-
-    def get_newest_message(self, init=False):
-        if init:
-            ret = list(self.db_client[self._config_publish_scope]
-                       .find().sort([("tsp", -1)]).limit(1))
-            if ret:
-                self._tsp = ret[0]['tsp']
-        else:
-            params = {"tsp": {"$gt": self._tsp}} if self._tsp else {}
-            ret = list(self.db_client[self._config_publish_scope]
-                       .find(params).sort([("tsp", 1)]))
-        return ret
-
-    def clear_history_message(self):
-        date_str = strftime(datetime.datetime.now(), '%Y-%m-%d')
-        if date_str == self._clear_date:
-            return
-        self.db_client[self._config_publish_scope].remove({'created': {'$lt': date_str}})
-        self._clear_date = date_str

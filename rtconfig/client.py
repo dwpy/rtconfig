@@ -52,7 +52,8 @@ class RtConfigClient:
                  context=None,
                  debug=False,
                  env='default',
-                 force_exit=True):
+                 force_exit=True,
+                 token=None):
         self._data = {}
         self._thread = None
         self.debug = debug
@@ -73,6 +74,7 @@ class RtConfigClient:
         self.context = context or {}
         self.env = env
         self.task = None
+        self.token = token
         self.force_exit = force_exit
         self.status = STATUS_RUN
         assert isinstance(self.context, dict)
@@ -186,12 +188,20 @@ class RtConfigClient:
         self.send_flag = ping or message.response_mode == RESPONSE_MODE_REPLY
         self.first_connection = ping
 
+    def get_connection(self):
+        params = dict(
+            extra_headers=dict(
+                authorization_token=self.token or ""
+            )
+        )
+        return websockets.connect(self.connect_url, **params)
+
     async def ping(self):
-        async with websockets.connect(self.connect_url) as ws:
+        async with self.get_connection() as ws:
             await self.send_message(ws, ping=True)
 
     async def connect(self):
-        async with websockets.connect(self.connect_url) as ws:
+        async with self.get_connection() as ws:
             while self.status == STATUS_RUN:
                 try:
                     self.task = asyncio.ensure_future(self.send_message(ws))

@@ -10,7 +10,6 @@ from rtconfig.auth import *
 DEFAULT_CONFIG = {
     'STORE_TYPE': 'json_file',
     'BROKER_URL': '~/rtconfig',
-    'LOGIN_DISABLED': True,
 }
 
 STORE_CONFIG_SCHEME = {
@@ -80,14 +79,19 @@ def init_config(server_app):
     server_app.config[scheme['backend_config_name']] = backend_config
     server_app.config['SESSION_ENGINE'] = scheme['session_engine']
     server_app.config['SESSION_ENGINE_CONFIG'] = globals()['_transfer_session_%s_url' % store_type](broker_url)
-    server_app.config['AUTH_MANAGER'] = scheme['auth_manager_class'](server_app)
+    if server_app.config['LOGIN_DISABLED']:
+        auth_manager = AuthManager(server_app)
+    else:
+        auth_manager = scheme['auth_manager_class'](server_app)
+    server_app.config['AUTH_MANAGER'] = auth_manager
 
 
 def create_app():
     server_app = Alita('rtc')
     server_app.config.from_mapping(DEFAULT_CONFIG)
-    if os.path.exists('services.py'):
-        server_app.config_from_pyfile(os.path.abspath('services.py'))
+    config_file = DEFAULT_CONFIG.get('CONFIG_FILE')
+    if config_file and os.path.exists(config_file):
+        server_app.config_from_pyfile(config_file)
     init_config(server_app)
     session = Session()
     rt_config = RtConfig()
@@ -98,9 +102,6 @@ def create_app():
     login_manager.init_app(server_app)
     login_manager.user_loader(server_app.config['AUTH_MANAGER'].load_user)
     return server_app
-
-
-app = create_app()
 
 
 def argparse_options():
@@ -138,6 +139,18 @@ def argparse_options():
         default=DEFAULT_CONFIG['BROKER_URL'],
         help="Rtconfig server broker url"
     )
+    parser.add_argument(
+        '--login-disable',
+        action="store_true",
+        default=False,
+        help="Rtconfig server disable login"
+    )
+    parser.add_argument(
+        '--config',
+        action="store",
+        default=None,
+        help="Rtconfig server config"
+    )
     return parser.parse_args()
 
 
@@ -145,5 +158,7 @@ if __name__ == '__main__':
     options = argparse_options().__dict__
     DEFAULT_CONFIG['STORE_TYPE'] = options.pop('store_type', None)
     DEFAULT_CONFIG['BROKER_URL'] = options.pop('broker_url', None)
+    DEFAULT_CONFIG['LOGIN_DISABLED'] = options.pop('login_disable', False)
+    DEFAULT_CONFIG['CONFIG_FILE'] = options.pop('config', None)
     app = create_app()
     app.run(**options)

@@ -114,6 +114,18 @@ async def user_detail(request):
     return {'code': 0, "data": {}}
 
 
+@api_view.route('/user/token', methods=['PUT'])
+@login_required
+async def user_token(request):
+    auth_manager = request.app.config['AUTH_MANAGER']
+    username = request.json.get('username')
+    user = auth_manager.get_user(username)
+    if not user:
+        raise GlobalApiException('用户名不存在')
+    auth_manager.reset_token(username)
+    return {'code': 0, "data": {}}
+
+
 @api_view.route('/config/list')
 @login_required
 async def config_list(request):
