@@ -45,7 +45,7 @@ You can create `service.py` python config file, And add file path to params `--c
 Configuration options:
 
 | config name |  type  | default | description |
-|--------|--------|--------|
+|--------|--------|--------|--------|
 |    DEBUG    | bool |   false   |    debug mode    |
 |    MAX_CONNECTION  | int |  1024   |    max client connections    |
 |    STORE_TYPE   | string  | json_file   |  data store type    |
