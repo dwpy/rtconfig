@@ -15,11 +15,13 @@ You can start server directly by single process.
 python -m rtconfig.server
 ```
 Command options:
-- --host: server host
-- --port: server port
-- --auto-reload: if auto reload
-- --store-type: rtconfig server store type
-- --broker-url: rtconfig server broker url
+- --host: str, server host
+- --port: str, server port
+- --auto-reload: bool, if auto reload
+- --store-type: str, rtconfig server store type
+- --broker-url: str, rtconfig server broker url
+- --login-disable: bool, rtconfig server disable login
+- --config: str, rtconfig server config file path
 
 ## Login account
 Both of initial user name and password is `admin`.
@@ -38,16 +40,18 @@ conf.config_name
 ```
 
 ## Configuration
-You can create `service.py` python file in current directory. 
+You can create `service.py` python config file, And add file path to params `--config=services.py`. 
 
 Configuration options:
 
-| config name | default | description |
+| config name |  type  | default | description |
 |--------|--------|--------|
-|    DEBUG    |    false   |    debug mode    |
-|    MAX_CONNECTION  |   1024   |    max client connections    |
-|    STORE_TYPE   |   json_file   |  data store type    |
-|    BROKER_URL   |    |  data store broker url   |
+|    DEBUG    | bool |   false   |    debug mode    |
+|    MAX_CONNECTION  | int |  1024   |    max client connections    |
+|    STORE_TYPE   | string  | json_file   |  data store type    |
+|    BROKER_URL   |  string  |  |  data store broker url   |
+|    LOGIN_DISABLED   |  bool  | false  |  server disable login   |
+|    OPEN_CLIENT_AUTH_TOKEN   |  bool  | false |  data store broker url   |
 
 ## Config data store method broker url
 json_file
