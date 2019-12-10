@@ -355,12 +355,6 @@ class ConfigManager(CallbackHandleMixin):
             host_name=message.context['environ'].get('HOSTNAME', 'unknown'),
             client_pid=message.context.get('pid', '--'),
         )
-        try:
-            config_project = self.get_config_project(message.config_name)
-            with config_project.use_env(message.env, message.context):
-                data['server_hash_code'] = config_project.get_hash_code()
-        except ProjectNoFoundException:
-            data['server_hash_code'] = '--'
         return data
 
     def get_connection_clients(self, config_name=None):
