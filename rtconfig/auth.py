@@ -64,10 +64,10 @@ class AuthManager:
         return hashlib.md5(password.encode("utf-8")).hexdigest()
 
     def get_all(self):
-        raise NotImplementedError
+        return {}
 
     def save_all(self, all_user):
-        raise NotImplementedError
+        pass
 
     def reset_token(self, username):
         self.update_user(username, token=str(uuid.uuid1()))
