@@ -6,6 +6,7 @@ import importlib
 import traceback
 import websockets
 from rtconfig.message import *
+from urllib.parse import urljoin
 from rtconfig.exceptions import RTConfigServerError
 
 try:
@@ -110,7 +111,7 @@ class RtConfigClient:
     
     @property
     def connect_url(self):
-        return os.path.join(self.ws_url, 'connect')
+        return urljoin(self.ws_url, 'connect')
 
     def config_to_module(self, *config_modules):
         for module in config_modules:
