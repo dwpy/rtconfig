@@ -121,7 +121,8 @@ class RtConfigClient:
 
     def change_module_config(self):
         def _load_config_module_data(config_module):
-            for key, value in self._data.items():
+            config_data = dict(self.data, config_name=self.config_name)
+            for key, value in config_data.items():
                 if isinstance(config_module, types.ModuleType):
                     config_module.__dict__[key] = value
                 elif isinstance(config_module, dict):
