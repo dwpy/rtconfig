@@ -63,9 +63,9 @@ class RtConfig:
                         request.user = auth_manager.load_user(user)
 
                     received_message = Message(request=request, **json.loads(await ws.recv()))
-                    await self.config_manager.add_connection(ws, received_message)
                     config_project = self.config_manager.get_config_project(
                         received_message.config_name, check_exist=True)
+                    await self.config_manager.add_connection(ws, received_message)
                     await ws.send(config_project.config_message(received_message))
                 except BaseConfigException as ex:
                     self.config_manager.logger.exception(str(ex))
