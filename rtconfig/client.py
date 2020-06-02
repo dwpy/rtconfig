@@ -54,7 +54,8 @@ class RtConfigClient:
                  debug=False,
                  env='default',
                  force_exit=True,
-                 token=None):
+                 token=None,
+                 run_loop=True):
         self._data = {}
         self._thread = None
         self.debug = debug
@@ -76,6 +77,7 @@ class RtConfigClient:
         self.env = env
         self.task = None
         self.token = token
+        self.run_loop = run_loop
         self.force_exit = force_exit
         self.status = STATUS_RUN
         assert isinstance(self.context, dict)
@@ -236,7 +238,7 @@ class RtConfigClient:
             loop_handler = self.ping if ping else self.loop_connect
             self.loop.run_until_complete(loop_handler())
 
-        if self._thread and self._thread.isAlive():
+        if self._thread and self._thread.is_alive():
             raise RuntimeError('RtConfig client is running.')
         if not self.ws_url:
             raise RuntimeError('RtConfig client ws_url must be support.')
@@ -246,7 +248,7 @@ class RtConfigClient:
             if self.force_exit:
                 raise ex
             self.logger.exception(traceback.format_exc())
-        if self.data.get('CLIENT_RUN_LOOP') is False:
+        if not (self.run_loop and self.data.get('CLIENT_RUN_LOOP', True)):
             return
         try:
             import uwsgidecorators
