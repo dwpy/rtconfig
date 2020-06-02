@@ -114,7 +114,7 @@ class JsonFileBackend(BaseBackend):
                 'required': False,
                 'type': 'string',
                 'desc': '数据存储目录',
-                'default': '~/rtconfig/data'
+                'default': '~/config/data'
             }
         }
 

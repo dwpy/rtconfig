@@ -9,7 +9,7 @@ from rtconfig.auth import *
 
 DEFAULT_CONFIG = {
     'STORE_TYPE': 'json_file',
-    'BROKER_URL': '~/rtconfig',
+    'BROKER_URL': '~/config',
 }
 
 STORE_CONFIG_SCHEME = {
@@ -117,7 +117,7 @@ def argparse_options():
     parser.add_argument(
         '--port',
         action="store",
-        default=8089,
+        default=5189,
         type=int,
         help="Rtconfig server port"
     )
