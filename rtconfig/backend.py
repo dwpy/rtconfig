@@ -155,12 +155,15 @@ class JsonFileBackend(BaseBackend):
         await self.publish('callback_config_changed', config_name)
 
     def iter_backend(self):
-        for _, _, file_names in OSUtils().walk(self.config_store_directory):
+        for root, _, file_names in OSUtils().walk(self.config_store_directory):
             for file_name in file_names:
                 config_name, extension = os.path.splitext(file_name)
                 if extension != self._extension:
                     continue
-                yield config_name
+                yield dict(
+                    config_name=config_name,
+                    data=self.read(config_name)
+                )
 
     async def delete(self, config_name):
         file_path = self.get_file_path(config_name)
