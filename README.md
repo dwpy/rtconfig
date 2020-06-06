@@ -27,7 +27,7 @@ Command options:
 Create a new python module `conf.py`, then write code like this:
 ```
 from rtconfig import RtConfigClient
-client = RtConfigClient('demo',ws_url='ws://127.0.0.1:8089',config_module=globals())
+client = RtConfigClient('demo',url='ws://127.0.0.1:8089',config_module=globals())
 ```
 So, you can use real time configuration like this:
 ```
