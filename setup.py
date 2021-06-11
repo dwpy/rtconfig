@@ -32,7 +32,7 @@ setup(
         'attrs',
         'uwsgidecorators',
         'python-dotenv',
-        'websockets==6.0'
+        'websockets==9.1'
     ],
     classifiers=[
         'Development Status :: 1 - Planning',
